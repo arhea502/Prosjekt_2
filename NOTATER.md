@@ -1,72 +1,28 @@
-# ===============================
-# APP.PY – FULL KODE
-# ===============================
+# APP.PY
 
-# -------------------------------
-# ⚙️ IMPORTS
-# -------------------------------
-from flask import Flask, render_template, redirect, url_for, request, flash
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+## Konfigurasjon
 
-# -------------------------------
-# ⚙️ KONFIGURASJON
-# -------------------------------
+- `app = Flask(__name__)`  
+  Lager Flask-appen. `__name__` brukes til å finne hvilken fil som skal starte opp, og gjør at Flask vet hvor den finner `templates` og `static`-mapper.
 
-# Lager Flask-appen. __name__ hjelper Flask å finne templates og static mapper
-app = Flask(__name__)
+- `app.config['SECRET_KEY'] = '108158379'`  
+  Brukes til å signere session cookies. Innlogging fungerer ikke uten denne nøkkelen.
 
-# Secret key brukes til å signere session cookies. Innlogging fungerer ikke uten
-app.config['SECRET_KEY'] = '108158379'
+- `app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'`  
+  Forteller hvilken database Flask bruker. Her brukes SQLite, og databasen vil lagres i filen `database.db`. De tre skråstrekene `///` betyr at stien er relativ til prosjektmappen.
 
-# Databasekonfigurasjon – SQLite database i prosjektmappen. Den sier også at den skal hete database.db
-# '///' betyr relativ sti til prosjektmappen
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
+- `db = SQLAlchemy(app)`  
+  Kobler Flask til databasen, slik at databasen blir tilgjengelig overalt i appen.
 
-# Kobler Flask til databasen, tilgjengelig overalt
-db = SQLAlchemy(app)
+## Flask-Login + Databasemodeller
 
-# -------------------------------
-# 🔐 FLASK-LOGIN
-# -------------------------------
+- `login_manager = LoginManager(app)`  
+  Kobler Flask til login-systemet. Gjør at `current_user` blir tilgjengelig i alle ruter.
 
- # Kobler Flask til login-systemet
-login_manager = LoginManager(app)     
+- `login_manager.login_view = 'login'`  
+  Hvis noen prøver å gå til en beskyttet side uten å være logget inn, vil de automatisk bli sendt til ruten `login`.
 
-
- # Redirect til 'login' hvis ikke logget inn
-login_manager.login_view = 'login'  
-
-
-# -------------------------------
-# 👤 DATABASEMODELLER
-# -------------------------------
-class User(UserMixin, db.Model):
-    """
-    User-modell for innlogging
-    - id: Primærnøkkel
-    - username: Brukernavn
-    - password: Passord (klartekst her; i praksis bruk hashing)
-    """
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
-
-# -------------------------------
-# 🧩 USER LOADER
-# -------------------------------
-@login_manager.user_loader
-def load_user(user_id):
-    """
-    Flask-Login trenger å vite hvordan den henter brukere fra databasen
-    - Kalles automatisk ved hver forespørsel med session-cookie
-    - user_id konverteres til int fordi ID er tall i databasen
-    """
-    return User.query.get(int(user_id))
-
-# -------------------------------
-# 🔨 DATABASE INITIALISERING
-# -------------------------------
-if __name__ == '__main__':
-    db.create_all()  # Opprett databasen og tabeller hvis de ikke finnes
-    app.run(debug=True)
+- ```python
+  @login_manager.user_loader
+  def load_user(user_id):
+      return User.query.get(int(user_id))`
