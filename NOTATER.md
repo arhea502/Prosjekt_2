@@ -16,20 +16,21 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, log
 # Lager Flask-appen. __name__ hjelper Flask å finne templates og static mapper
 app = Flask(__name__)
 
-# Secret key brukes til å signere session cookies (kreves for innlogging)
+# Secret key brukes til å signere session cookies. Innlogging fungerer ikke uten
 app.config['SECRET_KEY'] = '108158379'
 
-# Databasekonfigurasjon: SQLite database i prosjektmappen
+# Databasekonfigurasjon – SQLite database i prosjektmappen
+# '///' betyr relativ sti til prosjektmappen
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 
-# Kobler Flask til databasen
+# Kobler Flask til databasen, tilgjengelig overalt
 db = SQLAlchemy(app)
 
 # -------------------------------
 # 🔐 FLASK-LOGIN
 # -------------------------------
-login_manager = LoginManager(app)          # Kobler Flask til login-systemet
-login_manager.login_view = 'login'         # Redirect til 'login' hvis ikke logget inn
+login_manager = LoginManager(app)      # Kobler Flask til login-systemet
+login_manager.login_view = 'login'     # Redirect til 'login' hvis ikke logget inn
 
 # -------------------------------
 # 👤 DATABASEMODELLER
@@ -51,9 +52,9 @@ class User(UserMixin, db.Model):
 @login_manager.user_loader
 def load_user(user_id):
     """
-    Flask-Login kaller denne for å hente bruker fra databasen
-    - user_id hentes fra session-cookie
-    - konverteres til int fordi ID er tall i databasen
+    Flask-Login trenger å vite hvordan den henter brukere fra databasen
+    - Kalles automatisk ved hver forespørsel med session-cookie
+    - user_id konverteres til int fordi ID er tall i databasen
     """
     return User.query.get(int(user_id))
 
