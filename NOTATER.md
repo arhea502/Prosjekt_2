@@ -19,7 +19,7 @@ app = Flask(__name__)
 # Secret key brukes til å signere session cookies. Innlogging fungerer ikke uten
 app.config['SECRET_KEY'] = '108158379'
 
-# Databasekonfigurasjon – SQLite database i prosjektmappen
+# Databasekonfigurasjon – SQLite database i prosjektmappen. Den sier også at den skal hete database.db
 # '///' betyr relativ sti til prosjektmappen
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 
@@ -29,8 +29,14 @@ db = SQLAlchemy(app)
 # -------------------------------
 # 🔐 FLASK-LOGIN
 # -------------------------------
-login_manager = LoginManager(app)      # Kobler Flask til login-systemet
-login_manager.login_view = 'login'     # Redirect til 'login' hvis ikke logget inn
+
+ # Kobler Flask til login-systemet
+login_manager = LoginManager(app)     
+
+
+ # Redirect til 'login' hvis ikke logget inn
+login_manager.login_view = 'login'  
+
 
 # -------------------------------
 # 👤 DATABASEMODELLER
@@ -57,34 +63,6 @@ def load_user(user_id):
     - user_id konverteres til int fordi ID er tall i databasen
     """
     return User.query.get(int(user_id))
-
-# -------------------------------
-# 🔑 ROUTES
-# -------------------------------
-
-@app.route('/')
-@login_required
-def home():
-    return f"Velkommen {current_user.username}!"
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        user = User.query.filter_by(username=username).first()
-        if user and user.password == password:
-            login_user(user)
-            return redirect(url_for('home'))
-        else:
-            flash('Feil brukernavn eller passord')
-    return render_template('login.html')
-
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('login'))
 
 # -------------------------------
 # 🔨 DATABASE INITIALISERING
