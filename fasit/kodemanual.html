@@ -1,0 +1,2756 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bygg Læringsplattformen — Kodemanual</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ─────────────────────────────────────────
+   VARIABLER
+───────────────────────────────────────── */
+:root {
+  --bg:        #faf9f6;
+  --bg2:       #f0ede6;
+  --surface:   #ffffff;
+  --ink:       #18160f;
+  --ink2:      #3d3a30;
+  --ink3:      #908c80;
+  --rule:      #e0dbd0;
+  --accent:    #d4500a;        /* oransje-rød */
+  --accent2:   #1a6b9a;       /* blå */
+  --accent3:   #1e7a4a;       /* grønn */
+  --accent4:   #7c4dbd;       /* lilla */
+  --code-bg:   #16140d;
+  --yellow-bg: #fffbeb;
+  --yellow-b:  #b87d0a;
+  --blue-bg:   #eff6ff;
+  --blue-b:    #1a6b9a;
+  --green-bg:  #f0fdf4;
+  --green-b:   #1e7a4a;
+  --red-bg:    #fff1ee;
+  --red-b:     #d4500a;
+  --purple-bg: #f5f0ff;
+  --purple-b:  #7c4dbd;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+/* ─────────────────────────────────────────
+   LAYOUT
+───────────────────────────────────────── */
+.shell { display: flex; min-height: 100vh; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--ink);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar::-webkit-scrollbar { width: 3px; }
+.sidebar::-webkit-scrollbar-thumb { background: #3a3828; }
+
+.sb-logo {
+  padding: 26px 22px 18px;
+  border-bottom: 1px solid #2a2820;
+}
+.sb-logo-tag {
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: #5a5848;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.sb-logo h1 {
+  font-family: 'Fraunces', serif;
+  font-size: 17px;
+  color: #f0ece0;
+  line-height: 1.3;
+  font-weight: 700;
+}
+
+.sb-prog {
+  padding: 12px 22px;
+  border-bottom: 1px solid #2a2820;
+}
+.sb-prog-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: #5a5848;
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
+.sb-track {
+  height: 2px;
+  background: #2a2820;
+  border-radius: 1px;
+}
+.sb-fill {
+  height: 100%;
+  background: var(--accent3);
+  border-radius: 1px;
+  width: 0%;
+  transition: width .5s ease;
+}
+
+.sb-nav { flex: 1; padding: 12px 0 24px; }
+
+.sb-phase {
+  padding: 12px 22px 3px;
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  color: #4a4838;
+  text-transform: uppercase;
+}
+
+.sb-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 22px;
+  font-size: 12.5px;
+  color: #7a7868;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: all .15s;
+  line-height: 1.4;
+}
+.sb-item:hover { color: #c8c4b0; background: #1e1c14; }
+.sb-item.active { color: #f0ece0; border-left-color: var(--accent); background: #1e1c14; }
+.sb-item.done { color: var(--accent3); }
+.sb-item .sn {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #3a3828;
+  min-width: 18px;
+  flex-shrink: 0;
+}
+.sb-item.done .sn { color: var(--accent3); }
+
+/* MAIN */
+.main { flex: 1; min-width: 0; }
+
+/* TOPBAR */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--bg);
+  border-bottom: 1px solid var(--rule);
+  padding: 10px 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.tb-crumb { font-size: 13px; color: var(--ink3); }
+.tb-crumb strong { color: var(--ink); }
+.tb-nav { display: flex; gap: 8px; }
+.tb-btn {
+  padding: 7px 18px;
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  background: transparent;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink2);
+  cursor: pointer;
+  transition: all .15s;
+}
+.tb-btn:hover { background: var(--bg2); }
+.tb-btn.pri { background: var(--ink); color: #f0ece0; border-color: var(--ink); }
+.tb-btn.pri:hover { background: var(--accent); border-color: var(--accent); }
+.tb-btn:disabled { opacity: .3; cursor: not-allowed; }
+
+/* PAGES */
+.page { display: none; padding: 56px 52px 100px; max-width: 840px; animation: fadeUp .3s ease; }
+.page.active { display: block; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+/* ─────────────────────────────────────────
+   STEP HEADER
+───────────────────────────────────────── */
+.step-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.meta-phase {
+  font-size: 10px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: var(--ink3);
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  padding: 3px 10px;
+  border-radius: 3px;
+}
+.meta-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 600;
+}
+.page h2 {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(26px, 3.5vw, 40px);
+  line-height: 1.15;
+  color: var(--ink);
+  margin-bottom: 6px;
+  font-weight: 900;
+}
+.tagline {
+  font-size: 16px;
+  color: var(--ink3);
+  font-style: italic;
+  margin-bottom: 32px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* ─────────────────────────────────────────
+   BODY TEKST
+───────────────────────────────────────── */
+.page p { color: var(--ink2); margin-bottom: 16px; font-size: 15.5px; }
+.page p:last-child { margin-bottom: 0; }
+.page strong { color: var(--ink); font-weight: 600; }
+.page em { font-style: italic; color: var(--ink2); }
+
+.page ul, .page ol { padding-left: 22px; margin-bottom: 16px; }
+.page li { color: var(--ink2); margin-bottom: 7px; font-size: 15.5px; }
+.page li::marker { color: var(--accent); }
+
+/* INLINE CODE */
+.page code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  color: var(--accent);
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* ─────────────────────────────────────────
+   SEKSJONS-SKILLE
+───────────────────────────────────────── */
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 36px 0 22px;
+}
+.divider span {
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--ink3);
+  white-space: nowrap;
+}
+.divider::before, .divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--rule);
+}
+
+/* ─────────────────────────────────────────
+   KODE-BLOKK
+───────────────────────────────────────── */
+.code-wrap {
+  margin: 22px 0;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid #2a2820;
+  box-shadow: 0 6px 24px rgba(0,0,0,.18);
+}
+.code-head {
+  background: #0e0d08;
+  padding: 10px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #2a2820;
+  gap: 12px;
+}
+.code-fn { font-family: 'JetBrains Mono', monospace; font-size: 11.5px; color: #7a7868; }
+.code-lang { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #3a3828; }
+.copy-btn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px; font-weight: 600;
+  background: #1e1c14; border: 1px solid #3a3828;
+  color: #7a7868; padding: 3px 10px;
+  border-radius: 3px; cursor: pointer; transition: all .15s;
+  margin-left: auto;
+}
+.copy-btn:hover { background: #2a2820; color: #c8c4b0; }
+.copy-btn.ok { color: var(--accent3); border-color: var(--accent3); }
+
+pre.cb {
+  background: var(--code-bg);
+  padding: 20px 22px;
+  margin: 0;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 1.75;
+  color: #d8d4c4;
+  white-space: pre;
+  tab-size: 4;
+}
+
+/* SYNTAX */
+.kw   { color: #d19a66; }   /* Python keywords */
+.fn   { color: #61afef; }   /* function names */
+.st   { color: #98c379; }   /* strings */
+.cm   { color: #4a4838; font-style: italic; }  /* comments */
+.dc   { color: #c678dd; }   /* decorators */
+.nb   { color: #e5c07b; }   /* numbers, booleans */
+.tg   { color: #e06c75; }   /* HTML tags */
+.at   { color: #d19a66; }   /* HTML attrs */
+.vl   { color: #98c379; }   /* attr values */
+.ji   { color: #c678dd; }   /* Jinja {{ }} {% %} */
+.sl   { color: #e06c75; }   /* CSS selectors */
+.pr   { color: #61afef; }   /* CSS props */
+.un   { color: #e5c07b; }   /* CSS values/units */
+.jk   { color: #c678dd; }   /* JS keywords */
+.jf   { color: #61afef; }   /* JS fns */
+.js   { color: #98c379; }   /* JS strings */
+.jc   { color: #4a4838; font-style: italic; }  /* JS comments */
+
+/* ─────────────────────────────────────────
+   ANNOTASJON (under kode)
+───────────────────────────────────────── */
+.ann {
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  padding: 18px 22px;
+  margin-top: -10px;
+  margin-bottom: 22px;
+}
+.ann-title {
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--ink3);
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.ann ul { padding-left: 18px; }
+.ann li { font-size: 14px; color: var(--ink2); margin-bottom: 8px; line-height: 1.7; }
+.ann li::marker { color: var(--accent); }
+.ann li code {
+  font-size: 12px;
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  color: var(--accent);
+  padding: 1px 5px;
+  border-radius: 3px;
+}
+.ann p { font-size: 14px; color: var(--ink2); margin-bottom: 8px; }
+.ann p:last-child { margin-bottom: 0; }
+
+/* ─────────────────────────────────────────
+   CALLOUT BOKSER
+───────────────────────────────────────── */
+.box {
+  border-radius: 8px;
+  padding: 18px 20px;
+  margin: 22px 0;
+  display: flex;
+  gap: 14px;
+}
+.box-icon { font-size: 20px; flex-shrink: 0; line-height: 1.6; }
+.box-body { flex: 1; min-width: 0; }
+.box-title {
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+.box p { font-size: 14.5px; color: var(--ink2); margin-bottom: 8px; }
+.box p:last-child { margin-bottom: 0; }
+.box strong { color: var(--ink); }
+.box code { font-size: 12px; background: rgba(0,0,0,.06); border: 1px solid rgba(0,0,0,.08); padding: 1px 5px; border-radius: 3px; color: var(--ink); }
+
+.box.why   { background: var(--yellow-bg); border: 1px solid #f0d070; }
+.box.why   .box-title { color: var(--yellow-b); }
+.box.tip   { background: var(--blue-bg);   border: 1px solid #b0d0f0; }
+.box.tip   .box-title { color: var(--blue-b); }
+.box.warn  { background: var(--red-bg);    border: 1px solid #f0c0b0; }
+.box.warn  .box-title { color: var(--red-b); }
+.box.task  { background: var(--purple-bg); border: 1px solid #c8b0e8; }
+.box.task  .box-title { color: var(--accent4); }
+.box.win   { background: var(--green-bg);  border: 1px solid #a0d8b8; }
+.box.win   .box-title { color: var(--green-b); }
+
+/* ─────────────────────────────────────────
+   FIL-TRE
+───────────────────────────────────────── */
+.ft {
+  background: var(--code-bg);
+  border: 1px solid #2a2820;
+  border-radius: 8px;
+  padding: 18px 22px;
+  margin: 18px 0;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  line-height: 2;
+}
+.ft .d { color: #e5c07b; }
+.ft .f { color: #98c379; }
+.ft .n { color: #4a4838; font-style: italic; }
+
+/* ─────────────────────────────────────────
+   TABELL
+───────────────────────────────────────── */
+.tbl { width: 100%; border-collapse: collapse; margin: 18px 0; font-size: 14px; }
+.tbl th {
+  background: var(--bg2); font-size: 10px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--ink3); padding: 10px 14px;
+  text-align: left; border-bottom: 2px solid var(--rule);
+}
+.tbl td { padding: 10px 14px; border-bottom: 1px solid var(--rule); color: var(--ink2); vertical-align: top; }
+.tbl tr:last-child td { border-bottom: none; }
+.tbl code { font-size: 11.5px; background: var(--bg2); border: 1px solid var(--rule); color: var(--accent); padding: 1px 5px; border-radius: 3px; }
+
+/* ─────────────────────────────────────────
+   STEG-FOOTER
+───────────────────────────────────────── */
+.step-footer {
+  margin-top: 52px;
+  padding-top: 24px;
+  border-top: 1px solid var(--rule);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.done-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 22px;
+  background: var(--accent3);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s;
+}
+.done-btn:hover { background: #176038; }
+.done-btn.completed { background: #176038; }
+.nav-btns { display: flex; gap: 10px; }
+.nav-btn {
+  padding: 10px 20px;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--bg);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink2);
+  cursor: pointer;
+  transition: all .15s;
+}
+.nav-btn:hover { background: var(--bg2); }
+.nav-btn:disabled { opacity: .3; cursor: not-allowed; }
+
+/* ─────────────────────────────────────────
+   COVER
+───────────────────────────────────────── */
+.cover {
+  min-height: calc(100vh - 57px);
+  padding: 64px 52px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 840px;
+}
+.cover-kicker {
+  font-size: 11px;
+  letter-spacing: 4px;
+  text-transform: uppercase;
+  color: var(--ink3);
+  margin-bottom: 22px;
+}
+.cover h1 {
+  font-family: 'Fraunces', serif;
+  font-size: clamp(38px, 5.5vw, 68px);
+  line-height: 1.08;
+  font-weight: 900;
+  color: var(--ink);
+  margin-bottom: 22px;
+}
+.cover h1 em { font-style: italic; color: var(--accent); font-weight: 400; }
+.cover-desc { font-size: 17px; color: var(--ink2); max-width: 520px; margin-bottom: 36px; line-height: 1.75; }
+
+.cover-pills {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+.pill {
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: var(--ink2);
+  font-weight: 500;
+}
+.pill strong { color: var(--accent); }
+
+.cover-toc {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 10px;
+  margin-bottom: 40px;
+}
+.toc-card {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all .15s;
+}
+.toc-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+.toc-ph { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--ink3); margin-bottom: 4px; }
+.toc-ti { font-weight: 600; font-size: 13.5px; color: var(--ink); }
+.toc-ct { font-size: 12px; color: var(--ink3); margin-top: 2px; }
+
+.start-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 30px;
+  background: var(--ink);
+  color: #f0ece0;
+  border: none;
+  border-radius: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .2s;
+}
+.start-btn:hover { background: var(--accent); }
+
+/* ─────────────────────────────────────────
+   RESPONSIVE
+───────────────────────────────────────── */
+@media (max-width: 740px) {
+  .sidebar { display: none; }
+  .page { padding: 32px 20px 80px; }
+  .topbar { padding: 10px 20px; }
+  .cover { padding: 40px 20px; }
+}
+</style>
+</head>
+<body>
+<div class="shell">
+
+<!-- ══════════════ SIDEBAR ══════════════ -->
+<aside class="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-tag">Kodemanual · Norsk</div>
+    <h1>IT-Lærings&shy;plattform</h1>
+  </div>
+  <div class="sb-prog">
+    <div class="sb-prog-row">
+      <span>Fremgang</span>
+      <span id="sb-count">0 / 20</span>
+    </div>
+    <div class="sb-track"><div class="sb-fill" id="sb-fill"></div></div>
+  </div>
+  <nav class="sb-nav" id="sb-nav"></nav>
+</aside>
+
+<!-- ══════════════ MAIN ══════════════ -->
+<div class="main">
+
+  <div class="topbar">
+    <div class="tb-crumb" id="tb-crumb">Oversikt</div>
+    <div class="tb-nav">
+      <button class="tb-btn" onclick="prev()">← Forrige</button>
+      <button class="tb-btn pri" onclick="next()">Neste →</button>
+    </div>
+  </div>
+
+  <!-- ══════ PAGE 0 — COVER ══════ -->
+  <div class="page active" id="page-0">
+    <div class="cover">
+      <div class="cover-kicker">Steg-for-steg · Norsk · Fokus på HVORFOR</div>
+      <h1>Bygg<br><em>lærings&shy;plattformen</em><br>fra bunnen av</h1>
+      <p class="cover-desc">
+        Du kan litt Python og litt HTML fra før — denne guiden møter deg der.
+        Hvert steg forklarer ikke bare <strong>hva</strong> du skriver, men
+        <strong>hvorfor</strong> Flask er bygget opp akkurat slik.
+      </p>
+      <div class="cover-pills">
+        <div class="pill">🧠 Fokus på <strong>HVORFOR</strong></div>
+        <div class="pill">🇳🇴 Norsk</div>
+        <div class="pill">✍️ Oppgaver underveis</div>
+        <div class="pill">📋 All kode forklart</div>
+      </div>
+      <div class="cover-toc" id="cover-toc"></div>
+      <button class="start-btn" onclick="go(1)">Start fra steg 1 →</button>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 1 ══════ -->
+  <div class="page" id="page-1">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 1 — Oppsett</span>
+      <span class="meta-num">STEG 01</span>
+    </div>
+    <h2>Installer Python og VS Code</h2>
+    <p class="tagline">Verktøyene du skriver og kjører koden i.</p>
+
+    <p>Gå til <strong>python.org</strong> og last ned Python. Under installasjonen er det én ting som er kritisk:</p>
+
+    <div class="box warn">
+      <span class="box-icon">⚠️</span>
+      <div class="box-body">
+        <div class="box-title">Ikke glem dette</div>
+        <p>Huk av <strong>"Add Python to PATH"</strong> under installasjonen. PATH er en liste datamaskinen bruker til å finne programmer du skriver i terminalen. Uten dette vil <code>python</code>-kommandoen ikke fungere.</p>
+      </div>
+    </div>
+
+    <p>Last så ned <strong>VS Code</strong> fra code.visualstudio.com. Etter installasjon, åpne Extensions (Ctrl+Shift+X) og installer <strong>Python</strong> (av Microsoft) og <strong>Jinja</strong>.</p>
+
+    <div class="box why">
+      <span class="box-icon">🧠</span>
+      <div class="box-body">
+        <div class="box-title">Hvorfor VS Code og ikke Notepad?</div>
+        <p>VS Code forstår Python — den markerer feil mens du skriver, foreslår kode du kan trykke Tab for å fullføre, og har en innebygd terminal. Det er som å skrive en tekst i Word vs. Notepad. Du <em>kan</em> bruke Notepad, men du velger det vekk raskt.</p>
+      </div>
+    </div>
+
+    <p>Test at Python er installert riktig. Åpne terminalen i VS Code med <strong>Ctrl + `</strong> og skriv:</p>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">Terminal</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb">python --version
+<span class="cm"># Forventer: Python 3.11.x eller lignende</span></pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">Hva skjer her?</div>
+      <p>Du ber terminalen kjøre programmet <code>python</code> med argumentet <code>--version</code>. Programmet skriver ut versjonen og avslutter. Ser du en versjon → alt OK. Ser du "not recognized" → PATH er ikke satt riktig, installer på nytt.</p>
+    </div>
+
+    <div class="box task">
+      <span class="box-icon">✍️</span>
+      <div class="box-body">
+        <div class="box-title">Din oppgave</div>
+        <p>Installer Python og VS Code. Åpne terminalen og kjør <code>python --version</code>. Skriv ned hvilken versjon du fikk før du går videre.</p>
+      </div>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,1)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()" disabled>← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 2 ══════ -->
+  <div class="page" id="page-2">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 1 — Oppsett</span>
+      <span class="meta-num">STEG 02</span>
+    </div>
+    <h2>Mappestruktur og virtuelt miljø</h2>
+    <p class="tagline">Bygg grunnmuren — ryddig fra dag én.</p>
+
+    <p>Lag en ny mappe et sted på datamaskinen, kalt <code>laeringsplattform</code>. Åpne den i VS Code via <strong>File → Open Folder</strong>. Lag deretter denne strukturen inne i mappen:</p>
+
+    <div class="ft">
+<span class="d">laeringsplattform/</span>
+├── <span class="d">templates/</span>          <span class="n"># Flask leter alltid her etter HTML</span>
+│   ├── <span class="f">base.html</span>       <span class="n"># Felles ramme alle sider arver</span>
+│   ├── <span class="f">login.html</span>
+│   ├── <span class="f">register.html</span>
+│   ├── <span class="f">index.html</span>
+│   ├── <span class="f">section.html</span>
+│   ├── <span class="f">topic.html</span>
+│   ├── <span class="f">profile.html</span>
+│   └── <span class="d">admin/</span>
+│       ├── <span class="f">panel.html</span>
+│       └── <span class="f">setup.html</span>
+├── <span class="d">static/</span>              <span class="n"># Flask leter her etter CSS, bilder, JS</span>
+│   └── <span class="f">style.css</span>
+└── <span class="f">app.py</span>               <span class="n"># Alt Python-kode bor her</span>
+    </div>
+
+    <div class="box why">
+      <span class="box-icon">🧠</span>
+      <div class="box-body">
+        <div class="box-title">Hvorfor akkurat disse mappenavnene?</div>
+        <p>Flask er et "konvensjonsbasert" rammeverk. Det betyr at det har hardkodet inn forventninger: det leter i <code>templates/</code> når du kaller <code>render_template()</code>, og i <code>static/</code> når du bruker <code>url_for('static', ...)</code>. Du <em>kan</em> endre dette, men det er ingen grunn til det — følg konvensjonen og ting bare fungerer.</p>
+      </div>
+    </div>
+
+    <div class="divider"><span>Virtuelt miljø</span></div>
+
+    <p>Åpne terminalen i VS Code og kjør disse kommandoene én om gangen:</p>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">Terminal</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="cm"># Lag et virtuelt miljø kalt "venv"</span>
+python -m venv venv
+
+<span class="cm"># Aktiver det (Windows)</span>
+venv\Scripts\activate
+
+<span class="cm"># Aktiver det (Mac / Linux)</span>
+source venv/bin/activate
+
+<span class="cm"># Legg merke til at "(venv)" dukker opp i terminalen — bra!</span>
+<span class="cm"># Installer alle pakker vi trenger</span>
+pip install flask flask-sqlalchemy flask-login werkzeug markdown</pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">Linje for linje</div>
+      <ul>
+        <li><code>python -m venv venv</code> — <code>-m venv</code> betyr "kjør den innebygde Python-modulen kalt venv". Det lager en mappe kalt <code>venv/</code> med en isolert Python-installasjon.</li>
+        <li><code>venv\Scripts\activate</code> — Bytter "aktiv Python" i denne terminalen til den i <code>venv/</code>. Fra nå av er all <code>pip install</code> isolert til dette prosjektet.</li>
+        <li><code>pip install ...</code> — <code>pip</code> er Pythons pakkebehandler. Den laster ned og installerer pakker fra nettet (fra pypi.org).</li>
+      </ul>
+    </div>
+
+    <div class="box why">
+      <span class="box-icon">🧠</span>
+      <div class="box-body">
+        <div class="box-title">Hvorfor virtuelt miljø — kan jeg ikke bare pip installere globalt?</div>
+        <p>Jo, men tenk deg at du har to prosjekter: ett trenger Flask 2.0, et annet trenger Flask 3.0. Globalt kan du bare ha én versjon installert — de to prosjektene ville krasje. Et virtuelt miljø gir hvert prosjekt sin egen boble med sine egne pakker i sine egne versjoner. Det er standarden i profesjonell Python-utvikling.</p>
+      </div>
+    </div>
+
+    <table class="tbl">
+      <tr><th>Pakke</th><th>Hva den gjør</th></tr>
+      <tr><td><code>flask</code></td><td>Selve webserveren — tar imot HTTP-forespørsler og sender svar</td></tr>
+      <tr><td><code>flask-sqlalchemy</code></td><td>Kobler Python-klasser til databasetabeller (ORM)</td></tr>
+      <tr><td><code>flask-login</code></td><td>Håndterer innlogging, sesjoner og "hvem er innlogget nå"</td></tr>
+      <tr><td><code>werkzeug</code></td><td>Krypterer passord sikkert med bcrypt-hashing</td></tr>
+      <tr><td><code>markdown</code></td><td>Konverterer Markdown-tekst til HTML</td></tr>
+    </table>
+
+    <div class="box warn">
+      <span class="box-icon">⚠️</span>
+      <div class="box-body">
+        <div class="box-title">Husk dette hver gang du åpner VS Code</div>
+        <p>Hvert nytt terminalvindu starter uten venv aktivert. Kjør alltid <code>venv\Scripts\activate</code> før du jobber med prosjektet. Ser du <code>(venv)</code> i prompten → aktivert. Ser du det ikke → ikke aktivert.</p>
+      </div>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,2)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 3 ══════ -->
+  <div class="page" id="page-3">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 2 — Flask-grunnlag</span>
+      <span class="meta-num">STEG 03</span>
+    </div>
+    <h2>Den første Flask-appen</h2>
+    <p class="tagline">Minimal fungerende server — og hva hver eneste linje faktisk gjør.</p>
+
+    <p>Åpne <code>app.py</code> og skriv inn dette. Les forklaringene nøye — dette er skjelettet resten av appen henger på.</p>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">app.py</span>
+        <span class="code-lang">Python</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="kw">from</span> flask <span class="kw">import</span> Flask, render_template
+
+app = Flask(__name__)
+app.config[<span class="st">'SECRET_KEY'</span>] = <span class="st">'bytt-meg-til-noe-hemmelig-123'</span>
+
+<span class="dc">@app.route</span>(<span class="st">'/'</span>)
+<span class="kw">def</span> <span class="fn">index</span>():
+    <span class="kw">return</span> render_template(<span class="st">'index.html'</span>)
+
+<span class="kw">if</span> __name__ == <span class="st">'__main__'</span>:
+    app.run(debug=<span class="nb">True</span>)</pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">Linje for linje — hva skjer egentlig?</div>
+      <ul>
+        <li><code>from flask import Flask, render_template</code> — Hent to ting fra Flask-pakken: <code>Flask</code> (klassen som representerer appen) og <code>render_template</code> (funksjonen som leser HTML-filer og sender dem til nettleseren).</li>
+        <li><code>app = Flask(__name__)</code> — Lag en Flask-app. <code>__name__</code> er en innebygd Python-variabel som inneholder navnet på den gjeldende modulen. Flask bruker dette til å finne prosjektets rotmappe — og dermed der <code>templates/</code> og <code>static/</code> befinner seg.</li>
+        <li><code>app.config['SECRET_KEY'] = '...'</code> — En hemmelig streng Flask bruker til å signere session-cookies kryptografisk. Uten den kan ikke Flask-Login fungere. Bytt den til noe tilfeldig og langt.</li>
+        <li><code>@app.route('/')</code> — En <em>dekorator</em>. Den registrerer funksjonen under som "handler" for URL-en <code>/</code>. Når nettleseren besøker <code>http://localhost:5000/</code>, kalles denne funksjonen.</li>
+        <li><code>def index():</code> — Vanlig Python-funksjon. Navnet <code>index</code> er bare et navn — du kan kalle den hva som helst.</li>
+        <li><code>return render_template('index.html')</code> — Les filen <code>templates/index.html</code>, prosesser den som en Jinja2-mal, og returner HTML-strengen. Flask sender denne tilbake til nettleseren.</li>
+        <li><code>if __name__ == '__main__':</code> — Denne blokken kjøres bare hvis du kjører <code>python app.py</code> direkte. Hvis <code>app.py</code> importeres av en annen fil, kjøres ikke blokken. Standard Python-mønster.</li>
+        <li><code>app.run(debug=True)</code> — Start Flask sin innebygde webserver. <code>debug=True</code> gjør to ting: serveren restarter automatisk når du lagrer endringer, og feilmeldinger vises i nettleseren med full stack trace.</li>
+      </ul>
+    </div>
+
+    <div class="box why">
+      <span class="box-icon">🧠</span>
+      <div class="box-body">
+        <div class="box-title">Hva er en dekorator egentlig?</div>
+        <p>En dekorator er Python-syntaks for å <em>pakke inn</em> en funksjon. <code>@app.route('/')</code> er det samme som å skrive <code>index = app.route('/')(index)</code> — det registrerer funksjonen i Flasks interne URL-kart. Tenk på det som å si til Flask: "Legg til denne funksjonen som handler for <code>/</code> i oppslagstabellen din."</p>
+      </div>
+    </div>
+
+    <p>Lag en minimal <code>templates/index.html</code> for å teste:</p>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">templates/index.html</span>
+        <span class="code-lang">HTML</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="tg">&lt;!DOCTYPE html&gt;</span>
+<span class="tg">&lt;html&gt;&lt;body&gt;</span>
+  <span class="tg">&lt;h1&gt;</span>Flask fungerer! 🎉<span class="tg">&lt;/h1&gt;</span>
+<span class="tg">&lt;/body&gt;&lt;/html&gt;</span></pre>
+    </div>
+
+    <p>Kjør appen og åpne nettleseren:</p>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">Terminal</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb">python app.py
+<span class="cm"># Gå til: http://localhost:5000</span></pre>
+    </div>
+
+    <div class="box task">
+      <span class="box-icon">✍️</span>
+      <div class="box-body">
+        <div class="box-title">Prøv selv</div>
+        <p>Endre teksten i <code>index.html</code> mens serveren kjører. Refresh nettleseren — ser du endringen umiddelbart? Det er <code>debug=True</code> i aksjon. Prøv også å gi route-funksjonen et annet navn — hva skjer?</p>
+      </div>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,3)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 4 ══════ -->
+  <div class="page" id="page-4">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 2 — Flask-grunnlag</span>
+      <span class="meta-num">STEG 04</span>
+    </div>
+    <h2>base.html og Jinja2-arv</h2>
+    <p class="tagline">Skriv navbar én gang. Få den på alle sider automatisk.</p>
+
+    <div class="box why">
+      <span class="box-icon">🧠</span>
+      <div class="box-body">
+        <div class="box-title">Hvorfor arv i HTML-maler?</div>
+        <p>Uten arv: Du skriver navbaren i alle 9 HTML-filer. Vil du endre én lenke → 9 steder å endre. Med arv: <code>base.html</code> inneholder navbaren og all felles HTML. Alle andre filer sier bare "jeg bygger på base" og fyller inn selve innholdet. Endre navbaren ett sted → oppdateres overalt automatisk.</p>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">templates/base.html</span>
+        <span class="code-lang">HTML + Jinja2</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="tg">&lt;!DOCTYPE html&gt;</span>
+<span class="tg">&lt;html</span> <span class="at">lang</span>=<span class="vl">"no"</span><span class="tg">&gt;</span>
+<span class="tg">&lt;head&gt;</span>
+  <span class="tg">&lt;meta</span> <span class="at">charset</span>=<span class="vl">"UTF-8"</span><span class="tg">&gt;</span>
+  <span class="tg">&lt;meta</span> <span class="at">name</span>=<span class="vl">"viewport"</span> <span class="at">content</span>=<span class="vl">"width=device-width, initial-scale=1"</span><span class="tg">&gt;</span>
+  <span class="tg">&lt;title&gt;</span><span class="ji">{% block title %}Læringsplattform{% endblock %}</span><span class="tg">&lt;/title&gt;</span>
+  <span class="tg">&lt;link</span> <span class="at">rel</span>=<span class="vl">"stylesheet"</span>
+        <span class="at">href</span>=<span class="vl">"{{ url_for('static', filename='style.css') }}"</span><span class="tg">&gt;</span>
+<span class="tg">&lt;/head&gt;</span>
+<span class="tg">&lt;body&gt;</span>
+
+  <span class="tg">&lt;nav&gt;</span>
+    <span class="tg">&lt;a</span> <span class="at">href</span>=<span class="vl">"/"</span><span class="tg">&gt;</span>🏠 Hjem<span class="tg">&lt;/a&gt;</span>
+
+    <span class="ji">{% if current_user.is_authenticated %}</span>
+      <span class="tg">&lt;a</span> <span class="at">href</span>=<span class="vl">"/profil"</span><span class="tg">&gt;</span>Min profil<span class="tg">&lt;/a&gt;</span>
+
+      <span class="ji">{% if current_user.is_admin %}</span>
+        <span class="tg">&lt;a</span> <span class="at">href</span>=<span class="vl">"/admin"</span><span class="tg">&gt;</span>Admin<span class="tg">&lt;/a&gt;</span>
+      <span class="ji">{% endif %}</span>
+
+      <span class="tg">&lt;span&gt;</span><span class="ji">{{ current_user.username }}</span><span class="tg">&lt;/span&gt;</span>
+      <span class="tg">&lt;a</span> <span class="at">href</span>=<span class="vl">"/logg-ut"</span><span class="tg">&gt;</span>Logg ut<span class="tg">&lt;/a&gt;</span>
+    <span class="ji">{% else %}</span>
+      <span class="tg">&lt;a</span> <span class="at">href</span>=<span class="vl">"/login"</span><span class="tg">&gt;</span>Logg inn<span class="tg">&lt;/a&gt;</span>
+    <span class="ji">{% endif %}</span>
+  <span class="tg">&lt;/nav&gt;</span>
+
+  <span class="tg">&lt;main&gt;</span>
+    <span class="ji">{% with messages = get_flashed_messages(with_categories=true) %}</span>
+      <span class="ji">{% for category, message in messages %}</span>
+        <span class="tg">&lt;p</span> <span class="at">class</span>=<span class="vl">"alert {{ category }}"</span><span class="tg">&gt;</span><span class="ji">{{ message }}</span><span class="tg">&lt;/p&gt;</span>
+      <span class="ji">{% endfor %}</span>
+    <span class="ji">{% endwith %}</span>
+
+    <span class="ji">{% block content %}{% endblock %}</span>
+  <span class="tg">&lt;/main&gt;</span>
+
+<span class="tg">&lt;/body&gt;</span>
+<span class="tg">&lt;/html&gt;</span></pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">Jinja2-syntaks forklart</div>
+      <ul>
+        <li><code>{% block title %}Læringsplattform{% endblock %}</code> — Definer et <em>navngitt hull</em> kalt "title". Teksten mellom er <em>standardverdien</em> — brukes hvis en undermal ikke overskriver blokken.</li>
+        <li><code>{{ url_for('static', filename='style.css') }}</code> — Doble krøllparenteser = skriv ut en verdi. <code>url_for</code> er en Flask-hjelpefunksjon som genererer korrekt URL til filer i <code>static/</code>. Alltid bruk denne istedenfor hardkodede stier.</li>
+        <li><code>{% if current_user.is_authenticated %}</code> — Enkle krøllparenteser med % = kontrollstruktur (if, for, block osv.). <code>current_user</code> er et spesialobjekt fra Flask-Login, alltid tilgjengelig i alle maler.</li>
+        <li><code>{{ current_user.username }}</code> — Skriv ut brukernavnet til den innloggede brukeren.</li>
+        <li><code>{% block content %}{% endblock %}</code> — Det viktigste hullet — her settes alt sideinnhold inn av undermaler.</li>
+        <li><code>get_flashed_messages(with_categories=true)</code> — Henter midlertidige meldinger lagret med <code>flash()</code> i Python. De vises kun én gang — neste gang siden lastes er de borte.</li>
+      </ul>
+    </div>
+
+    <p>Slik bruker en side <code>base.html</code>:</p>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">templates/index.html — oppdatert versjon</span>
+        <span class="code-lang">Jinja2</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="ji">{% extends "base.html" %}</span>
+
+<span class="ji">{% block title %}Forsiden{% endblock %}</span>
+
+<span class="ji">{% block content %}</span>
+  <span class="tg">&lt;h1&gt;</span>Hei, <span class="ji">{{ current_user.username }}</span>! 👋<span class="tg">&lt;/h1&gt;</span>
+<span class="ji">{% endblock %}</span></pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">Hva skjer under panseret?</div>
+      <p>Når Flask kaller <code>render_template('index.html')</code>, leser Jinja2 filen, ser <code>{% extends "base.html" %}</code>, laster <code>base.html</code>, og setter innholdet fra <code>{% block content %}</code> inn i hullet i base. Resultatet er én komplett HTML-side som sendes til nettleseren.</p>
+    </div>
+
+    <div class="box task">
+      <span class="box-icon">✍️</span>
+      <div class="box-body">
+        <div class="box-title">Prøv selv</div>
+        <p>Oppdater <code>index.html</code> til å arve fra <code>base.html</code> som vist over. Hva skjer i nettleseren? Du vil se en feilmelding om <code>current_user</code> — det er fordi Flask-Login ikke er satt opp ennå. Det fikser vi i steg 6. For nå: fjern <code>{{ current_user.username }}</code> og se at arven fungerer.</p>
+      </div>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,4)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 5 ══════ -->
+  <div class="page" id="page-5">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 3 — Database</span>
+      <span class="meta-num">STEG 05</span>
+    </div>
+    <h2>Databasemodeller med SQLAlchemy</h2>
+    <p class="tagline">Beskriv databasen som Python-klasser — ikke SQL-spørringer.</p>
+
+    <div class="box why">
+      <span class="box-icon">🧠</span>
+      <div class="box-body">
+        <div class="box-title">Hva er et ORM og hvorfor bruker vi det?</div>
+        <p>ORM = Object-Relational Mapper. Uten ORM måtte du skrive <code>"INSERT INTO users (username, password) VALUES (?, ?)"</code> og håndtere SQL-feil manuelt. Med SQLAlchemy skriver du Python-klasser, og SQLAlchemy oversetter til SQL bak kulissene. Fordelen: du tenker i Python-objekter, ikke tabeller og kolonner. Koden blir tryggere og mer lesbar.</p>
+      </div>
+    </div>
+
+    <p>Legg til dette øverst i <code>app.py</code>, rett etter den eksisterende koden:</p>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">app.py — imports og konfigurasjon</span>
+        <span class="code-lang">Python</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="kw">from</span> flask <span class="kw">import</span> (Flask, render_template, redirect,
+                    url_for, request, flash, jsonify)
+<span class="kw">from</span> flask_sqlalchemy <span class="kw">import</span> SQLAlchemy
+<span class="kw">from</span> flask_login <span class="kw">import</span> (LoginManager, UserMixin,
+                              login_user, logout_user,
+                              login_required, current_user)
+<span class="kw">from</span> werkzeug.security <span class="kw">import</span> generate_password_hash, check_password_hash
+<span class="kw">from</span> functools <span class="kw">import</span> wraps
+<span class="kw">import</span> markdown <span class="kw">as</span> md
+
+app = Flask(__name__)
+app.config[<span class="st">'SECRET_KEY'</span>]            = <span class="st">'bytt-meg-til-noe-hemmelig-123'</span>
+app.config[<span class="st">'SQLALCHEMY_DATABASE_URI'</span>] = <span class="st">'sqlite:///database.db'</span>
+
+db = SQLAlchemy(app)</pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">Hva er nytt her?</div>
+      <ul>
+        <li><code>SQLALCHEMY_DATABASE_URI = 'sqlite:///database.db'</code> — Fortell SQLAlchemy hvor databasen er. <code>sqlite:///</code> betyr SQLite (filbasert database). De tre skråstrekene etterpå betyr "relativ til prosjektmappen". Filen havner i <code>instance/database.db</code>.</li>
+        <li><code>db = SQLAlchemy(app)</code> — Kobler databasen til Flask-appen. Nå kan du bruke <code>db</code> overalt i prosjektet.</li>
+      </ul>
+    </div>
+
+    <div class="divider"><span>Modellene</span></div>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">app.py — alle databasemodeller</span>
+        <span class="code-lang">Python</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="cm"># ── BRUKER ──────────────────────────────────────────</span>
+<span class="kw">class</span> <span class="fn">User</span>(UserMixin, db.Model):
+    id            = db.Column(db.Integer, primary_key=<span class="nb">True</span>)
+    username      = db.Column(db.String(<span class="nb">80</span>),  unique=<span class="nb">True</span>,  nullable=<span class="nb">False</span>)
+    password_hash = db.Column(db.String(<span class="nb">200</span>),                  nullable=<span class="nb">False</span>)
+    is_admin      = db.Column(db.Boolean, default=<span class="nb">False</span>)
+
+<span class="cm"># ── SEKSJON ─────────────────────────────────────────</span>
+<span class="kw">class</span> <span class="fn">Section</span>(db.Model):
+    id          = db.Column(db.Integer, primary_key=<span class="nb">True</span>)
+    title       = db.Column(db.String(<span class="nb">100</span>), nullable=<span class="nb">False</span>)
+    description = db.Column(db.Text)
+    emoji       = db.Column(db.String(<span class="nb">10</span>))
+    topics      = db.relationship(<span class="st">'Topic'</span>, backref=<span class="st">'section'</span>, lazy=<span class="nb">True</span>,
+                                  cascade=<span class="st">'all, delete-orphan'</span>)
+
+<span class="cm"># ── TEMA ────────────────────────────────────────────</span>
+<span class="kw">class</span> <span class="fn">Topic</span>(db.Model):
+    id         = db.Column(db.Integer, primary_key=<span class="nb">True</span>)
+    title      = db.Column(db.String(<span class="nb">100</span>), nullable=<span class="nb">False</span>)
+    section_id = db.Column(db.Integer, db.ForeignKey(<span class="st">'section.id'</span>), nullable=<span class="nb">False</span>)
+    elements   = db.relationship(<span class="st">'LearningElement'</span>, backref=<span class="st">'topic'</span>, lazy=<span class="nb">True</span>,
+                                  cascade=<span class="st">'all, delete-orphan'</span>)
+
+<span class="cm"># ── LÆRINGSELEMENT ──────────────────────────────────</span>
+<span class="kw">class</span> <span class="fn">LearningElement</span>(db.Model):
+    id             = db.Column(db.Integer, primary_key=<span class="nb">True</span>)
+    topic_id       = db.Column(db.Integer, db.ForeignKey(<span class="st">'topic.id'</span>), nullable=<span class="nb">False</span>)
+    type           = db.Column(db.String(<span class="nb">20</span>),  nullable=<span class="nb">False</span>)  <span class="cm"># 'quiz','open','markdown'</span>
+    content        = db.Column(db.Text)
+    question       = db.Column(db.Text)
+    option_a       = db.Column(db.String(<span class="nb">200</span>))
+    option_b       = db.Column(db.String(<span class="nb">200</span>))
+    option_c       = db.Column(db.String(<span class="nb">200</span>))
+    option_d       = db.Column(db.String(<span class="nb">200</span>))
+    correct_answer = db.Column(db.String(<span class="nb">1</span>))
+    answer_key     = db.Column(db.Text)
+
+<span class="cm"># ── FREMGANG (hvem har svart, riktig?) ───────────────</span>
+<span class="kw">class</span> <span class="fn">Progress</span>(db.Model):
+    id         = db.Column(db.Integer, primary_key=<span class="nb">True</span>)
+    user_id    = db.Column(db.Integer, db.ForeignKey(<span class="st">'user.id'</span>),             nullable=<span class="nb">False</span>)
+    element_id = db.Column(db.Integer, db.ForeignKey(<span class="st">'learning_element.id'</span>), nullable=<span class="nb">False</span>)
+    correct    = db.Column(db.Boolean)
+
+<span class="cm"># ── ÅPNE SVAR ───────────────────────────────────────</span>
+<span class="kw">class</span> <span class="fn">OpenAnswer</span>(db.Model):
+    id         = db.Column(db.Integer, primary_key=<span class="nb">True</span>)
+    user_id    = db.Column(db.Integer, db.ForeignKey(<span class="st">'user.id'</span>),             nullable=<span class="nb">False</span>)
+    element_id = db.Column(db.Integer, db.ForeignKey(<span class="st">'learning_element.id'</span>), nullable=<span class="nb">False</span>)
+    answer     = db.Column(db.Text)
+
+<span class="cm"># ── TEMABESØK ───────────────────────────────────────</span>
+<span class="kw">class</span> <span class="fn">TopicVisit</span>(db.Model):
+    id       = db.Column(db.Integer, primary_key=<span class="nb">True</span>)
+    user_id  = db.Column(db.Integer, db.ForeignKey(<span class="st">'user.id'</span>),    nullable=<span class="nb">False</span>)
+    topic_id = db.Column(db.Integer, db.ForeignKey(<span class="st">'topic.id'</span>),   nullable=<span class="nb">False</span>)</pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">Nøkkelkonsepter</div>
+      <ul>
+        <li><code>class User(UserMixin, db.Model)</code> — Klassen arver fra to foreldre. <code>db.Model</code> gjør den til en databasetabell. <code>UserMixin</code> er fra Flask-Login — den legger til metoder som <code>is_authenticated</code>, <code>is_active</code> og <code>get_id()</code> som Flask-Login forventer å finne på bruker-objektet.</li>
+        <li><code>db.Column(db.Integer, primary_key=True)</code> — En heltall-kolonne som er primærnøkkel. SQLite teller den automatisk opp (1, 2, 3...) for hver ny rad.</li>
+        <li><code>db.ForeignKey('section.id')</code> — Pek på en annen tabell. <code>'section.id'</code> betyr "id-kolonnen i section-tabellen". Dette er relasjonen mellom to tabeller.</li>
+        <li><code>db.relationship('Topic', backref='section', cascade='all, delete-orphan')</code> — Definer en Python-relasjon. <code>backref='section'</code> betyr du kan skrive <code>topic.section</code> for å hente seksjonen. <code>cascade='all, delete-orphan'</code> betyr: slett alle temaer automatisk hvis seksjonen slettes.</li>
+      </ul>
+    </div>
+
+    <div class="box why">
+      <span class="box-icon">🧠</span>
+      <div class="box-body">
+        <div class="box-title">Hvorfor lagre passord som "hash" og ikke klartekst?</div>
+        <p>En hash er en enveisfunksjon: <code>"hemmelig123"</code> → <code>"$2b$12$xK..."</code>. Det er umulig å gå tilbake. Selv om noen stjeler databasen, ser de bare hash-verdier — ikke passordene. <code>check_password_hash(lagret_hash, forsøk)</code> hasher forsøket med samme algoritme og sjekker om de matcher — uten å "dekryptere" noe.</p>
+      </div>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,5)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 6 ══════ -->
+  <div class="page" id="page-6">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 3 — Database</span>
+      <span class="meta-num">STEG 06</span>
+    </div>
+    <h2>Opprett databasen og admin-bruker</h2>
+    <p class="tagline">Kjør <code>db.create_all()</code> og se databasefilen dukke opp.</p>
+
+    <p>Legg til denne koden i <code>app.py</code>, etter alle modellene men før rutene:</p>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">app.py — initialiser DB</span>
+        <span class="code-lang">Python</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="kw">with</span> app.app_context():
+    db.create_all()
+
+    <span class="kw">if not</span> User.query.filter_by(username=<span class="st">'admin'</span>).first():
+        admin = User(
+            username=<span class="st">'admin'</span>,
+            password_hash=generate_password_hash(<span class="st">'admin123'</span>),
+            is_admin=<span class="nb">True</span>
+        )
+        db.session.add(admin)
+        db.session.commit()</pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">Hva skjer steg for steg?</div>
+      <ul>
+        <li><code>with app.app_context():</code> — Flask bruker en "kontekst" for å vite hvilken app som er aktiv. Utenfor en HTTP-forespørsel (som under oppstart) finnes ingen kontekst automatisk. <code>app_context()</code> oppretter en manuelt.</li>
+        <li><code>db.create_all()</code> — Går gjennom alle klasser som arver fra <code>db.Model</code>, og lager tilsvarende SQL-tabeller. Tabeller som allerede eksisterer røres ikke — trygt å kjøre hver gang appen starter.</li>
+        <li><code>User.query.filter_by(username='admin').first()</code> — Søk etter en bruker med brukernavn "admin". <code>.first()</code> returnerer første treff eller <code>None</code> — brukes til å sjekke om admin allerede finnes.</li>
+        <li><code>db.session.add(admin)</code> — Legg til objektet i den pågående transaksjonen (men skriv ikke til disk ennå).</li>
+        <li><code>db.session.commit()</code> — Skriv alle endringer i transaksjonen til databasefilen permanent.</li>
+      </ul>
+    </div>
+
+    <div class="box why">
+      <span class="box-icon">🧠</span>
+      <div class="box-body">
+        <div class="box-title">Hvorfor add() og så commit() — ikke bare save()?</div>
+        <p>SQLAlchemy bruker en <em>transaksjon</em>-modell. Du kan legge til mange objekter med <code>add()</code> uten at noe skrives til databasen. Først når du kaller <code>commit()</code> skrives alt på én gang. Fordelen: hvis ett objekt feiler, rulles hele gruppen tilbake — databasen blir aldri halvveis oppdatert.</p>
+      </div>
+    </div>
+
+    <p>Kjør nå <code>python app.py</code>. Du skal se at mappen <code>instance/</code> dukker opp med en fil kalt <code>database.db</code>.</p>
+
+    <div class="box task">
+      <span class="box-icon">✍️</span>
+      <div class="box-body">
+        <div class="box-title">Utforsk databasen</div>
+        <p>Last ned <strong>DB Browser for SQLite</strong> (gratis, fra sqlitebrowser.org) og åpne <code>instance/database.db</code>. Du kan se tabellene og admin-raden som er opprettet. Dette er nyttig for å forstå hva som faktisk lagres.</p>
+      </div>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,6)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 7 ══════ -->
+  <div class="page" id="page-7">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 4 — Autentisering</span>
+      <span class="meta-num">STEG 07</span>
+    </div>
+    <h2>Flask-Login — sesjoner og cookies</h2>
+    <p class="tagline">Hvordan appen husker deg mellom sidebesøk — og hvorfor det er nødvendig.</p>
+
+    <div class="box why">
+      <span class="box-icon">🧠</span>
+      <div class="box-body">
+        <div class="box-title">Problemet: HTTP er statsløst</div>
+        <p>Hver HTTP-forespørsel er uavhengig. Serveren har ingen innebygd hukommelse — etter at den svarte på "last forsiden" har den glemt at du i det hele tatt besøkte. Uten sesjoner måtte du logge inn på nytt <em>for hver eneste side</em>.</p>
+        <p><strong>Løsningen:</strong> Sesjons-cookie. Etter innlogging lagrer Flask en kryptert cookie i nettleseren din. Nettleseren sender denne med på alle fremtidige forespørsler — som et ID-kort. Serveren leser ID-kortet og vet hvem du er.</p>
+      </div>
+    </div>
+
+    <p>Legg til dette i <code>app.py</code>, etter <code>db = SQLAlchemy(app)</code>:</p>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">app.py — Flask-Login oppsett</span>
+        <span class="code-lang">Python</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb">login_manager = LoginManager(app)
+login_manager.login_view = <span class="st">'login'</span>
+
+<span class="dc">@login_manager.user_loader</span>
+<span class="kw">def</span> <span class="fn">load_user</span>(user_id):
+    <span class="kw">return</span> User.query.get(<span class="nb">int</span>(user_id))</pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">Hva skjer her?</div>
+      <ul>
+        <li><code>LoginManager(app)</code> — Kobler Flask-Login til appen. Fra nå av er <code>current_user</code> tilgjengelig i alle ruter og maler.</li>
+        <li><code>login_manager.login_view = 'login'</code> — Hvis noen prøver å gå til en <code>@login_required</code>-beskyttet side uten å være innlogget, send dem til ruten kalt <code>'login'</code>. Legg merke til at det er <em>funksjonsnavnet</em>, ikke URL-en.</li>
+        <li><code>@login_manager.user_loader</code> — Registrer en "loader-funksjon". Hver gang Flask mottar en forespørsel med en session-cookie, kaller Flask-Login denne funksjonen med bruker-ID-en fra cookien. Vi henter brukeren fra databasen og returnerer den — Flask-Login setter den som <code>current_user</code>.</li>
+        <li><code>int(user_id)</code> — Cookies lagrer alltid tekst (strenger). Vi konverterer til heltall fordi databasens ID er et heltall.</li>
+      </ul>
+    </div>
+
+    <p>Beskytt nå forsiden. Legg <code>@login_required</code> på <code>index</code>-funksjonen:</p>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">app.py — beskyttet rute</span>
+        <span class="code-lang">Python</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="dc">@app.route</span>(<span class="st">'/'</span>)
+<span class="dc">@login_required</span>       <span class="cm"># ← legg til denne</span>
+<span class="kw">def</span> <span class="fn">index</span>():
+    sections = Section.query.all()
+    <span class="kw">return</span> render_template(<span class="st">'index.html'</span>, sections=sections)</pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">To dekoratorer — rekkefølgen betyr noe</div>
+      <p>Dekoratorer kjøres nedenfra og opp. Flask sjekker først om URL-en matcher <code>'/'</code>, deretter sjekker <code>@login_required</code> om brukeren er innlogget. Hvis ikke, redirectes brukeren til <code>login_view</code>. Rekkefølgen <code>@app.route</code> øverst og <code>@login_required</code> under er standard — alltid gjør det slik.</p>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,7)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 8 ══════ -->
+  <div class="page" id="page-8">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 4 — Autentisering</span>
+      <span class="meta-num">STEG 08</span>
+    </div>
+    <h2>Login, registrering og utlogging</h2>
+    <p class="tagline">GET vs POST, skjemadata og passord-hashing i praksis.</p>
+
+    <div class="box why">
+      <span class="box-icon">🧠</span>
+      <div class="box-body">
+        <div class="box-title">Hvorfor trenger en route både GET og POST?</div>
+        <p>En login-side gjør to ting: <strong>GET</strong> = "vis meg skjemaet" (nettleseren besøker URL-en). <strong>POST</strong> = "behandle dataene jeg nettopp sendte inn" (bruker klikket Submit). Flask skiller disse ved hjelp av <code>request.method</code>. Alternativet er to separate URL-er for hvert skjema — mer rotete og vanskelig å lenke til.</p>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">app.py — login, register, logg-ut</span>
+        <span class="code-lang">Python</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="dc">@app.route</span>(<span class="st">'/login'</span>, methods=[<span class="st">'GET'</span>, <span class="st">'POST'</span>])
+<span class="kw">def</span> <span class="fn">login</span>():
+    <span class="kw">if</span> request.method == <span class="st">'POST'</span>:
+        username = request.form[<span class="st">'username'</span>]
+        password = request.form[<span class="st">'password'</span>]
+
+        user = User.query.filter_by(username=username).first()
+
+        <span class="kw">if</span> user <span class="kw">and</span> check_password_hash(user.password_hash, password):
+            login_user(user)
+            <span class="kw">return</span> redirect(url_for(<span class="st">'index'</span>))
+        <span class="kw">else</span>:
+            flash(<span class="st">'Feil brukernavn eller passord'</span>, <span class="st">'error'</span>)
+
+    <span class="kw">return</span> render_template(<span class="st">'login.html'</span>)
+
+
+<span class="dc">@app.route</span>(<span class="st">'/register'</span>, methods=[<span class="st">'GET'</span>, <span class="st">'POST'</span>])
+<span class="kw">def</span> <span class="fn">register</span>():
+    <span class="kw">if</span> request.method == <span class="st">'POST'</span>:
+        username = request.form[<span class="st">'username'</span>]
+        password = request.form[<span class="st">'password'</span>]
+
+        <span class="kw">if</span> User.query.filter_by(username=username).first():
+            flash(<span class="st">'Brukernavnet er allerede tatt'</span>, <span class="st">'error'</span>)
+            <span class="kw">return</span> redirect(url_for(<span class="st">'register'</span>))
+
+        ny = User(
+            username=username,
+            password_hash=generate_password_hash(password),
+            is_admin=<span class="nb">False</span>
+        )
+        db.session.add(ny)
+        db.session.commit()
+        login_user(ny)
+        <span class="kw">return</span> redirect(url_for(<span class="st">'index'</span>))
+
+    <span class="kw">return</span> render_template(<span class="st">'register.html'</span>)
+
+
+<span class="dc">@app.route</span>(<span class="st">'/logg-ut'</span>)
+<span class="dc">@login_required</span>
+<span class="kw">def</span> <span class="fn">logg_ut</span>():
+    logout_user()
+    <span class="kw">return</span> redirect(url_for(<span class="st">'login'</span>))</pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">Nøkkelpunkter</div>
+      <ul>
+        <li><code>request.form['username']</code> — Henter verdien fra HTML-skjemafeltet med <code>name="username"</code>. Navnet i HTML og Python <strong>må</strong> stemme overens.</li>
+        <li><code>user and check_password_hash(...)</code> — To betingelser med <code>and</code>. Hvis <code>user</code> er <code>None</code> (brukernavn finnes ikke), evalueres aldri <code>check_password_hash</code> — Python short-circuits.</li>
+        <li><code>flash('melding', 'error')</code> — Lagrer en engangsmelding. Den vises én gang i <code>base.html</code> via <code>get_flashed_messages()</code>, og forsvinner deretter.</li>
+        <li><code>url_for('index')</code> — Genererer URL-en til ruten kalt <code>index</code>. Ikke skriv <code>redirect('/')</code> hardkodet — <code>url_for</code> er tryggere og fungerer selv om du endrer URL-en.</li>
+      </ul>
+    </div>
+
+    <div class="divider"><span>HTML — login.html</span></div>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">templates/login.html</span>
+        <span class="code-lang">HTML + Jinja2</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="ji">{% extends "base.html" %}</span>
+<span class="ji">{% block title %}Logg inn{% endblock %}</span>
+<span class="ji">{% block content %}</span>
+
+<span class="tg">&lt;h1&gt;</span>Logg inn<span class="tg">&lt;/h1&gt;</span>
+
+<span class="tg">&lt;form</span> <span class="at">method</span>=<span class="vl">"post"</span><span class="tg">&gt;</span>
+  <span class="tg">&lt;label&gt;</span>Brukernavn<span class="tg">&lt;/label&gt;</span>
+  <span class="tg">&lt;input</span> <span class="at">type</span>=<span class="vl">"text"</span>     <span class="at">name</span>=<span class="vl">"username"</span> <span class="at">required</span><span class="tg">&gt;</span>
+
+  <span class="tg">&lt;label&gt;</span>Passord<span class="tg">&lt;/label&gt;</span>
+  <span class="tg">&lt;input</span> <span class="at">type</span>=<span class="vl">"password"</span>  <span class="at">name</span>=<span class="vl">"password"</span> <span class="at">required</span><span class="tg">&gt;</span>
+
+  <span class="tg">&lt;button</span> <span class="at">type</span>=<span class="vl">"submit"</span><span class="tg">&gt;</span>Logg inn<span class="tg">&lt;/button&gt;</span>
+<span class="tg">&lt;/form&gt;</span>
+
+<span class="tg">&lt;a</span> <span class="at">href</span>=<span class="vl">"/register"</span><span class="tg">&gt;</span>Har du ikke konto? Registrer deg her<span class="tg">&lt;/a&gt;</span>
+
+<span class="ji">{% endblock %}</span></pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">Koblingen mellom HTML og Python</div>
+      <p><code>&lt;form method="post"&gt;</code> — Ingen <code>action</code> betyr "send til samme URL". <code>name="username"</code> i input-feltet er nøkkelen Flask bruker: <code>request.form['username']</code>. Disse <strong>må</strong> matche. <code>type="password"</code> gjør at nettleseren skjuler det som skrives — det hindrer <em>ikke</em> at data sendes i klartekst, det er HTTPS sin jobb.</p>
+    </div>
+
+    <div class="box task">
+      <span class="box-icon">✍️</span>
+      <div class="box-body">
+        <div class="box-title">Test hele flyten</div>
+        <p>Lag <code>register.html</code> på egenhånd — samme mønster som <code>login.html</code>, bare med riktige navn. Start appen, registrer en bruker, log inn og log ut. Fungerer alle tre stegene?</p>
+      </div>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,8)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 9 ══════ -->
+  <div class="page" id="page-9">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 5 — Innholdsider</span>
+      <span class="meta-num">STEG 09</span>
+    </div>
+    <h2>Forside, seksjoner og tema-ruter</h2>
+    <p class="tagline">Dynamiske URL-er og sende data fra Python til HTML.</p>
+
+    <div class="box why">
+      <span class="box-icon">🧠</span>
+      <div class="box-body">
+        <div class="box-title">Hva betyr "dynamisk URL"?</div>
+        <p>Istedenfor å lage én rute per seksjon (<code>/section-1</code>, <code>/section-2</code>...) bruker Flask en <em>parameter</em> i URL-mønsteret: <code>/section/&lt;int:section_id&gt;</code>. Besøker du <code>/section/3</code>, kjøres funksjonen automatisk med <code>section_id=3</code>. Du trenger ikke endre kode for å støtte en million seksjoner.</p>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">app.py — innholdsruter</span>
+        <span class="code-lang">Python</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="dc">@app.route</span>(<span class="st">'/'</span>)
+<span class="dc">@login_required</span>
+<span class="kw">def</span> <span class="fn">index</span>():
+    sections = Section.query.all()
+    <span class="kw">return</span> render_template(<span class="st">'index.html'</span>, sections=sections)
+
+
+<span class="dc">@app.route</span>(<span class="st">'/section/&lt;int:section_id&gt;'</span>)
+<span class="dc">@login_required</span>
+<span class="kw">def</span> <span class="fn">section</span>(section_id):
+    seksjon = Section.query.get_or_404(section_id)
+    <span class="kw">return</span> render_template(<span class="st">'section.html'</span>, section=seksjon)
+
+
+<span class="dc">@app.route</span>(<span class="st">'/topic/&lt;int:topic_id&gt;'</span>)
+<span class="dc">@login_required</span>
+<span class="kw">def</span> <span class="fn">topic</span>(topic_id):
+    tema = Topic.query.get_or_404(topic_id)
+
+    <span class="cm"># Registrer besøk første gang</span>
+    <span class="kw">if not</span> TopicVisit.query.filter_by(
+            user_id=current_user.id, topic_id=topic_id).first():
+        db.session.add(TopicVisit(user_id=current_user.id, topic_id=topic_id))
+        db.session.commit()
+
+    <span class="cm"># Hvilke elementer har brukeren allerede svart på?</span>
+    answered_ids = {
+        p.element_id
+        <span class="kw">for</span> p <span class="kw">in</span> Progress.query.filter_by(user_id=current_user.id).all()
+    }
+    open_answers = {
+        a.element_id: a.answer
+        <span class="kw">for</span> a <span class="kw">in</span> OpenAnswer.query.filter_by(user_id=current_user.id).all()
+    }
+
+    <span class="cm"># Konverter markdown til HTML</span>
+    elements_rendered = []
+    <span class="kw">for</span> el <span class="kw">in</span> tema.elements:
+        rendered = el.content
+        <span class="kw">if</span> el.type == <span class="st">'markdown'</span>:
+            rendered = md.markdown(el.content,
+                                   extensions=[<span class="st">'fenced_code'</span>, <span class="st">'tables'</span>])
+        elements_rendered.append((el, rendered))
+
+    <span class="kw">return</span> render_template(<span class="st">'topic.html'</span>,
+        topic=tema,
+        elements_rendered=elements_rendered,
+        answered_ids=answered_ids,
+        open_answers=open_answers
+    )</pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">To Python-teknikker verdt å forstå</div>
+      <ul>
+        <li><code>{p.element_id for p in Progress.query...}</code> — Et <em>set comprehension</em>. Lager et Python-sett (som en liste, men uten duplikater og med rask oppslag). Brukes fordi vi trenger å sjekke <code>if element.id in answered_ids</code> mange ganger — sett gjør dette mye raskere enn en liste.</li>
+        <li><code>{a.element_id: a.answer for a in OpenAnswer.query...}</code> — Et <em>dict comprehension</em>. Lager en ordbok der nøkkelen er element_id og verdien er svaret. I malen kan vi da skrive <code>open_answers[element.id]</code> for å hente svaret direkte.</li>
+        <li><code>elements_rendered.append((el, rendered))</code> — Legger til et <em>tuppel</em> (to verdier pakket sammen) til listen. I malen loopes over dem med <code>{% for element, rendered in elements_rendered %}</code>.</li>
+      </ul>
+    </div>
+
+    <div class="divider"><span>HTML — index.html og section.html</span></div>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">templates/index.html</span>
+        <span class="code-lang">Jinja2</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="ji">{% extends "base.html" %}</span>
+<span class="ji">{% block title %}Forsiden{% endblock %}</span>
+<span class="ji">{% block content %}</span>
+
+<span class="tg">&lt;h1&gt;</span>Hei, <span class="ji">{{ current_user.username }}</span>! 👋<span class="tg">&lt;/h1&gt;</span>
+
+<span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"sections-grid"</span><span class="tg">&gt;</span>
+  <span class="ji">{% for section in sections %}</span>
+    <span class="tg">&lt;a</span> <span class="at">href</span>=<span class="vl">"/section/{{ section.id }}"</span> <span class="at">class</span>=<span class="vl">"section-card"</span><span class="tg">&gt;</span>
+      <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"emoji"</span><span class="tg">&gt;</span><span class="ji">{{ section.emoji }}</span><span class="tg">&lt;/div&gt;</span>
+      <span class="tg">&lt;h2&gt;</span><span class="ji">{{ section.title }}</span><span class="tg">&lt;/h2&gt;</span>
+      <span class="tg">&lt;p&gt;</span><span class="ji">{{ section.description }}</span><span class="tg">&lt;/p&gt;</span>
+    <span class="tg">&lt;/a&gt;</span>
+  <span class="ji">{% else %}</span>
+    <span class="tg">&lt;p&gt;</span>Ingen seksjoner ennå. Admin må opprette innhold først.<span class="tg">&lt;/p&gt;</span>
+  <span class="ji">{% endfor %}</span>
+<span class="tg">&lt;/div&gt;</span>
+
+<span class="ji">{% endblock %}</span></pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">Jinja2 for-løkke med else</div>
+      <p><code>{% else %}</code> inne i en <code>{% for %}</code>-løkke er spesielt for Jinja2. Det kjøres bare hvis listen er <em>tom</em>. Veldig nyttig for å vise en nyttig melding istedenfor en blank side.</p>
+      <p><code>/section/{{ section.id }}</code> — Jinja2 fyller inn den riktige ID-en fra databasen. For seksjon 3 genereres URL-en <code>/section/3</code> automatisk.</p>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,9)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 10 ══════ -->
+  <div class="page" id="page-10">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 5 — Innholdsider</span>
+      <span class="meta-num">STEG 10</span>
+    </div>
+    <h2>topic.html — tre typer innhold i én mal</h2>
+    <p class="tagline">Betinget rendering: vis forskjellig HTML basert på innholdstype.</p>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">templates/topic.html</span>
+        <span class="code-lang">HTML + Jinja2</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="ji">{% extends "base.html" %}</span>
+<span class="ji">{% block title %}{{ topic.title }}{% endblock %}</span>
+<span class="ji">{% block content %}</span>
+
+<span class="tg">&lt;h1&gt;</span><span class="ji">{{ topic.title }}</span><span class="tg">&lt;/h1&gt;</span>
+
+<span class="ji">{% for element, rendered in elements_rendered %}</span>
+
+  <span class="cm">{# ── MARKDOWN ── #}</span>
+  <span class="ji">{% if element.type == 'markdown' %}</span>
+    <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"markdown-content"</span><span class="tg">&gt;</span><span class="ji">{{ rendered | safe }}</span><span class="tg">&lt;/div&gt;</span>
+
+  <span class="cm">{# ── QUIZ ── #}</span>
+  <span class="ji">{% elif element.type == 'quiz' %}</span>
+    <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"quiz-block"</span>
+         <span class="at">data-element-id</span>=<span class="vl">"{{ element.id }}"</span><span class="tg">&gt;</span>
+      <span class="tg">&lt;p</span> <span class="at">class</span>=<span class="vl">"quiz-q"</span><span class="tg">&gt;</span><span class="ji">{{ element.question }}</span><span class="tg">&lt;/p&gt;</span>
+      <span class="ji">{% for letter, text in [('A', element.option_a), ('B', element.option_b),
+                              ('C', element.option_c), ('D', element.option_d)] %}</span>
+        <span class="tg">&lt;button</span> <span class="at">class</span>=<span class="vl">"quiz-btn"</span>
+                <span class="at">data-answer</span>=<span class="vl">"{{ letter }}"</span>
+                <span class="ji">{% if element.id in answered_ids %}disabled{% endif %}</span><span class="tg">&gt;</span>
+          <span class="tg">&lt;strong&gt;</span><span class="ji">{{ letter }}</span>.<span class="tg">&lt;/strong&gt;</span> <span class="ji">{{ text }}</span>
+        <span class="tg">&lt;/button&gt;</span>
+      <span class="ji">{% endfor %}</span>
+    <span class="tg">&lt;/div&gt;</span>
+
+  <span class="cm">{# ── ÅPENT SPØRSMÅL ── #}</span>
+  <span class="ji">{% elif element.type == 'open' %}</span>
+    <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"open-block"</span><span class="tg">&gt;</span>
+      <span class="tg">&lt;p</span> <span class="at">class</span>=<span class="vl">"open-q"</span><span class="tg">&gt;</span><span class="ji">{{ element.question }}</span><span class="tg">&lt;/p&gt;</span>
+
+      <span class="ji">{% if element.id in open_answers %}</span>
+        <span class="tg">&lt;p&gt;&lt;strong&gt;</span>Ditt svar:<span class="tg">&lt;/strong&gt;</span> <span class="ji">{{ open_answers[element.id] }}</span><span class="tg">&lt;/p&gt;</span>
+        <span class="ji">{% if element.answer_key %}</span>
+          <span class="tg">&lt;p&gt;&lt;strong&gt;</span>Fasit:<span class="tg">&lt;/strong&gt;</span> <span class="ji">{{ element.answer_key }}</span><span class="tg">&lt;/p&gt;</span>
+        <span class="ji">{% endif %}</span>
+      <span class="ji">{% else %}</span>
+        <span class="tg">&lt;form</span> <span class="at">method</span>=<span class="vl">"post"</span> <span class="at">action</span>=<span class="vl">"/answer/open/{{ element.id }}"</span><span class="tg">&gt;</span>
+          <span class="tg">&lt;textarea</span> <span class="at">name</span>=<span class="vl">"answer"</span> <span class="at">rows</span>=<span class="vl">"4"</span> <span class="at">required</span><span class="tg">&gt;&lt;/textarea&gt;</span>
+          <span class="tg">&lt;button</span> <span class="at">type</span>=<span class="vl">"submit"</span><span class="tg">&gt;</span>Lever svar<span class="tg">&lt;/button&gt;</span>
+        <span class="tg">&lt;/form&gt;</span>
+      <span class="ji">{% endif %}</span>
+    <span class="tg">&lt;/div&gt;</span>
+
+  <span class="ji">{% endif %}</span>
+<span class="ji">{% endfor %}</span>
+
+<span class="cm">{# Quiz-JavaScript legges til her (steg 11) #}</span>
+
+<span class="ji">{% endblock %}</span></pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">Viktige detaljer</div>
+      <ul>
+        <li><code>{{ rendered | safe }}</code> — Filteret <code>| safe</code> er kritisk. Jinja2 escaper HTML som standard for å beskytte mot XSS-angrep (der ondsinnede brukere injiserer HTML). Siden vi selv genererte HTML-en fra Markdown, vet vi det er trygt — <code>| safe</code> sier til Jinja2 at den skal vise det som ekte HTML, ikke som tekst.</li>
+        <li><code>data-element-id="{{ element.id }}"</code> — HTML <code>data-</code>-attributter er en standard måte å lagre data i HTML-elementer. JavaScript leser dem med <code>element.dataset.elementId</code>.</li>
+        <li><code>{% if element.id in answered_ids %}disabled{% endif %}</code> — Inline betingelse inne i et HTML-tag. Legger til <code>disabled</code>-attributtet bare hvis spørsmålet er besvart.</li>
+        <li><code>{% for letter, text in [('A', ...), ...] %}</code> — Loop over en liste av tupler for å unngå å repetere knappekoden fire ganger.</li>
+      </ul>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,10)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 11 ══════ -->
+  <div class="page" id="page-11">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 6 — Interaktivitet</span>
+      <span class="meta-num">STEG 11</span>
+    </div>
+    <h2>Quiz med fetch() — ingen sidereload</h2>
+    <p class="tagline">Asynkron kommunikasjon: JavaScript snakker med Flask i bakgrunnen.</p>
+
+    <div class="box why">
+      <span class="box-icon">🧠</span>
+      <div class="box-body">
+        <div class="box-title">Hva er problemet med vanlige skjema-submit for quiz?</div>
+        <p>Med et vanlig HTML-skjema lastes hele siden på nytt etter submit. Alle quizer returnerer til utgangs&shy;posisjonen, scrollposisjonen nullstilles, og bruker&shy;opplevelsen er dårlig. Med <code>fetch()</code> sendes svaret til serveren i bakgrunnen, vi mottar JSON tilbake, og oppdaterer <em>bare de berørte knappene</em> — ingen reload.</p>
+      </div>
+    </div>
+
+    <p>Flask-ruten som mottar quiz-svar:</p>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">app.py — quiz og åpent svar</span>
+        <span class="code-lang">Python</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="dc">@app.route</span>(<span class="st">'/answer/quiz'</span>, methods=[<span class="st">'POST'</span>])
+<span class="dc">@login_required</span>
+<span class="kw">def</span> <span class="fn">answer_quiz</span>():
+    data       = request.get_json()
+    element_id = data[<span class="st">'element_id'</span>]
+    answer     = data[<span class="st">'answer'</span>]
+
+    element = LearningElement.query.get_or_404(element_id)
+
+    <span class="kw">if</span> Progress.query.filter_by(
+            user_id=current_user.id, element_id=element_id).first():
+        <span class="kw">return</span> jsonify({<span class="st">'error'</span>: <span class="st">'allerede besvart'</span>}), <span class="nb">400</span>
+
+    correct = (answer == element.correct_answer)
+    db.session.add(Progress(
+        user_id=current_user.id,
+        element_id=element_id,
+        correct=correct
+    ))
+    db.session.commit()
+
+    <span class="kw">return</span> jsonify({
+        <span class="st">'correct'</span>: correct,
+        <span class="st">'right_answer'</span>: element.correct_answer
+    })
+
+
+<span class="dc">@app.route</span>(<span class="st">'/answer/open/&lt;int:element_id&gt;'</span>, methods=[<span class="st">'POST'</span>])
+<span class="dc">@login_required</span>
+<span class="kw">def</span> <span class="fn">answer_open</span>(element_id):
+    element = LearningElement.query.get_or_404(element_id)
+    <span class="kw">if not</span> OpenAnswer.query.filter_by(
+            user_id=current_user.id, element_id=element_id).first():
+        db.session.add(OpenAnswer(
+            user_id=current_user.id,
+            element_id=element_id,
+            answer=request.form[<span class="st">'answer'</span>]
+        ))
+        db.session.commit()
+    <span class="kw">return</span> redirect(url_for(<span class="st">'topic'</span>, topic_id=element.topic_id))</pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">GET vs POST vs JSON</div>
+      <ul>
+        <li><code>request.get_json()</code> — Når JavaScript sender JSON (ikke et HTML-skjema), bruker du denne istedenfor <code>request.form</code>. Den parser JSON-teksten til en Python-ordbok.</li>
+        <li><code>jsonify({...})</code> — Konverter en Python-ordbok til en JSON-tekststreng og returner den som HTTP-svar med Content-Type: application/json.</li>
+        <li><code>return jsonify(...), 400</code> — Det andre tallet er HTTP-statuskoden. 400 = "Bad Request". JavaScript kan sjekke <code>response.ok</code> for å se om det gikk bra.</li>
+      </ul>
+    </div>
+
+    <div class="divider"><span>JavaScript i topic.html</span></div>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">templates/topic.html — script-tag</span>
+        <span class="code-lang">JavaScript</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="tg">&lt;script&gt;</span>
+document.querySelectorAll(<span class="js">'.quiz-btn'</span>).forEach(btn => {
+
+  btn.addEventListener(<span class="js">'click'</span>, <span class="jk">async</span> () => {
+
+    <span class="jc">// Finn quiz-blokken denne knappen tilhører</span>
+    <span class="jk">const</span> block     = btn.closest(<span class="js">'.quiz-block'</span>)
+    <span class="jk">const</span> elementId = block.dataset.elementId
+    <span class="jk">const</span> answer    = btn.dataset.answer
+
+    <span class="jc">// Send JSON til Flask</span>
+    <span class="jk">const</span> response = <span class="jk">await</span> fetch(<span class="js">'/answer/quiz'</span>, {
+      method:  <span class="js">'POST'</span>,
+      headers: { <span class="js">'Content-Type'</span>: <span class="js">'application/json'</span> },
+      body:    JSON.stringify({ element_id: elementId, answer: answer })
+    })
+
+    <span class="jk">if</span> (!response.ok) <span class="jk">return</span>  <span class="jc">// allerede besvart</span>
+
+    <span class="jk">const</span> data = <span class="jk">await</span> response.json()
+
+    <span class="jc">// Farg alle knapper i denne quiz-blokken</span>
+    block.querySelectorAll(<span class="js">'.quiz-btn'</span>).forEach(b => {
+      b.disabled = <span class="jk">true</span>
+      <span class="jk">if</span> (b.dataset.answer === data.right_answer) {
+        b.classList.add(<span class="js">'correct'</span>)
+      } <span class="jk">else if</span> (b === btn && !data.correct) {
+        b.classList.add(<span class="js">'wrong'</span>)
+      }
+    })
+  })
+})
+<span class="tg">&lt;/script&gt;</span></pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">JavaScript-konsepter forklart</div>
+      <ul>
+        <li><code>async () => { ... }</code> — En asynkron pilfunksjon. <code>async</code> gjør at vi kan bruke <code>await</code> inni — det stopper funksjonen og venter på svar fra serveren uten å blokkere resten av siden.</li>
+        <li><code>btn.closest('.quiz-block')</code> — Klatre opp i DOM-treet til første foreldrelement med klassen <code>quiz-block</code>. Nyttig når en knapp er nestet inne i en container.</li>
+        <li><code>block.dataset.elementId</code> — Leser <code>data-element-id</code>-attributtet. Legg merke til at bindestrek konverteres til camelCase automatisk.</li>
+        <li><code>JSON.stringify({...})</code> — Konverter JavaScript-objekt til JSON-tekst for sending.</li>
+        <li><code>await response.json()</code> — Vent på og parse JSON-svaret fra Flask til et JavaScript-objekt.</li>
+        <li><code>b.classList.add('correct')</code> — Legg til en CSS-klasse dynamisk. I <code>style.css</code> kan du style <code>.quiz-btn.correct</code> til å bli grønn.</li>
+      </ul>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,11)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 12 ══════ -->
+  <div class="page" id="page-12">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 7 — Admin</span>
+      <span class="meta-num">STEG 12</span>
+    </div>
+    <h2>Admin-beskyttelse og CRUD</h2>
+    <p class="tagline">Lag din egen dekorator og håndter oppretting/sletting av innhold.</p>
+
+    <div class="box why">
+      <span class="box-icon">🧠</span>
+      <div class="box-body">
+        <div class="box-title">Hvorfor lage en egen dekorator istedenfor bare å sjekke inne i funksjonen?</div>
+        <p>Du <em>kunne</em> skrevet <code>if not current_user.is_admin: abort(403)</code> øverst i hver admin-funksjon. Men da er sjekken spredd ut over mange steder — og lett å glemme. En dekorator pakker inn logikken én gang og brukes som en merkelapp. Det er DRY — Don't Repeat Yourself.</p>
+      </div>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">app.py — admin_required og CRUD</span>
+        <span class="code-lang">Python</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="kw">from</span> flask <span class="kw">import</span> abort
+
+<span class="cm"># ── EGENDEFINERT DEKORATOR ──────────────────────────</span>
+<span class="kw">def</span> <span class="fn">admin_required</span>(f):
+    <span class="dc">@wraps</span>(f)
+    <span class="dc">@login_required</span>
+    <span class="kw">def</span> <span class="fn">decorated</span>(*args, **kwargs):
+        <span class="kw">if not</span> current_user.is_admin:
+            abort(<span class="nb">403</span>)
+        <span class="kw">return</span> f(*args, **kwargs)
+    <span class="kw">return</span> decorated
+
+
+<span class="cm"># ── ADMIN PANEL ─────────────────────────────────────</span>
+<span class="dc">@app.route</span>(<span class="st">'/admin'</span>)
+<span class="dc">@admin_required</span>
+<span class="kw">def</span> <span class="fn">admin_panel</span>():
+    sections = Section.query.all()
+    <span class="kw">return</span> render_template(<span class="st">'admin/panel.html'</span>, sections=sections)
+
+
+<span class="cm"># ── OPPRETT SEKSJON ─────────────────────────────────</span>
+<span class="dc">@app.route</span>(<span class="st">'/admin/section/new'</span>, methods=[<span class="st">'POST'</span>])
+<span class="dc">@admin_required</span>
+<span class="kw">def</span> <span class="fn">new_section</span>():
+    db.session.add(Section(
+        title=request.form[<span class="st">'title'</span>],
+        description=request.form[<span class="st">'description'</span>],
+        emoji=request.form[<span class="st">'emoji'</span>]
+    ))
+    db.session.commit()
+    <span class="kw">return</span> redirect(url_for(<span class="st">'admin_panel'</span>))
+
+
+<span class="cm"># ── SLETT SEKSJON ────────────────────────────────────</span>
+<span class="dc">@app.route</span>(<span class="st">'/admin/section/&lt;int:sid&gt;/delete'</span>, methods=[<span class="st">'POST'</span>])
+<span class="dc">@admin_required</span>
+<span class="kw">def</span> <span class="fn">delete_section</span>(sid):
+    db.session.delete(Section.query.get_or_404(sid))
+    db.session.commit()
+    <span class="kw">return</span> redirect(url_for(<span class="st">'admin_panel'</span>))
+
+
+<span class="cm"># ── OPPRETT TEMA ─────────────────────────────────────</span>
+<span class="dc">@app.route</span>(<span class="st">'/admin/topic/new'</span>, methods=[<span class="st">'POST'</span>])
+<span class="dc">@admin_required</span>
+<span class="kw">def</span> <span class="fn">new_topic</span>():
+    db.session.add(Topic(
+        title=request.form[<span class="st">'title'</span>],
+        section_id=request.form[<span class="st">'section_id'</span>]
+    ))
+    db.session.commit()
+    <span class="kw">return</span> redirect(url_for(<span class="st">'admin_panel'</span>))
+
+
+<span class="cm"># ── OPPRETT LÆRINGSELEMENT ───────────────────────────</span>
+<span class="dc">@app.route</span>(<span class="st">'/admin/element/new'</span>, methods=[<span class="st">'POST'</span>])
+<span class="dc">@admin_required</span>
+<span class="kw">def</span> <span class="fn">new_element</span>():
+    db.session.add(LearningElement(
+        topic_id       = request.form[<span class="st">'topic_id'</span>],
+        type           = request.form[<span class="st">'type'</span>],
+        content        = request.form.get(<span class="st">'content'</span>,        <span class="st">''</span>),
+        question       = request.form.get(<span class="st">'question'</span>,       <span class="st">''</span>),
+        option_a       = request.form.get(<span class="st">'option_a'</span>,       <span class="st">''</span>),
+        option_b       = request.form.get(<span class="st">'option_b'</span>,       <span class="st">''</span>),
+        option_c       = request.form.get(<span class="st">'option_c'</span>,       <span class="st">''</span>),
+        option_d       = request.form.get(<span class="st">'option_d'</span>,       <span class="st">''</span>),
+        correct_answer = request.form.get(<span class="st">'correct_answer'</span>, <span class="st">''</span>),
+        answer_key     = request.form.get(<span class="st">'answer_key'</span>,     <span class="st">''</span>)
+    ))
+    db.session.commit()
+    <span class="kw">return</span> redirect(url_for(<span class="st">'admin_panel'</span>))
+
+
+<span class="cm"># ── SE SVAR ─────────────────────────────────────────</span>
+<span class="dc">@app.route</span>(<span class="st">'/admin/element/&lt;int:eid&gt;/answers'</span>)
+<span class="dc">@admin_required</span>
+<span class="kw">def</span> <span class="fn">view_answers</span>(eid):
+    element = LearningElement.query.get_or_404(eid)
+    <span class="kw">if</span> element.type == <span class="st">'quiz'</span>:
+        rows = [(User.query.get(p.user_id), p.correct)
+                <span class="kw">for</span> p <span class="kw">in</span> Progress.query.filter_by(element_id=eid).all()]
+    <span class="kw">else</span>:
+        rows = [(User.query.get(a.user_id), a.answer)
+                <span class="kw">for</span> a <span class="kw">in</span> OpenAnswer.query.filter_by(element_id=eid).all()]
+    <span class="kw">return</span> render_template(<span class="st">'admin/answers.html'</span>, element=element, rows=rows)
+
+
+<span class="cm"># ── ADMIN SETUP (kan brukes uten innlogging) ─────────</span>
+<span class="dc">@app.route</span>(<span class="st">'/admin/setup'</span>, methods=[<span class="st">'GET'</span>, <span class="st">'POST'</span>])
+<span class="kw">def</span> <span class="fn">admin_setup</span>():
+    <span class="kw">if</span> request.method == <span class="st">'POST'</span>:
+        admin = User.query.filter_by(is_admin=<span class="nb">True</span>).first()
+        <span class="kw">if</span> admin:
+            admin.username      = request.form[<span class="st">'username'</span>]
+            admin.password_hash = generate_password_hash(request.form[<span class="st">'password'</span>])
+            db.session.commit()
+            flash(<span class="st">'Admin oppdatert!'</span>, <span class="st">'success'</span>)
+        <span class="kw">return</span> redirect(url_for(<span class="st">'login'</span>))
+    <span class="kw">return</span> render_template(<span class="st">'admin/setup.html'</span>)</pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">Dekoratoren under lupen</div>
+      <ul>
+        <li><code>def admin_required(f):</code> — Tar inn en funksjon <code>f</code> og returnerer en ny funksjon som pakker den inn.</li>
+        <li><code>@wraps(f)</code> — Uten dette ville den innpakkede funksjonen miste sitt opprinnelige navn og docstring. <code>@wraps</code> bevarer dem — nødvendig for at Flask skal kunne identifisere ruter korrekt.</li>
+        <li><code>abort(403)</code> — Flask-funksjon som avbryter forespørselen med HTTP-statuskoden 403 (Forbidden). Nettleseren vil vise en feilside.</li>
+        <li><code>return f(*args, **kwargs)</code> — Kjør den opprinnelige funksjonen med alle argumentene den fikk. <code>*args</code> og <code>**kwargs</code> er Python sin måte å si "ta alle argumenter og send dem videre".</li>
+      </ul>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,12)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 13 ══════ -->
+  <div class="page" id="page-13">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 7 — Admin</span>
+      <span class="meta-num">STEG 13</span>
+    </div>
+    <h2>Admin-panel HTML med kollaps og localStorage</h2>
+    <p class="tagline">Interaktiv liste som husker tilstanden sin mellom sidebesøk.</p>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">templates/admin/panel.html (utdrag)</span>
+        <span class="code-lang">HTML + Jinja2 + JS</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="ji">{% extends "base.html" %}</span>
+<span class="ji">{% block title %}Admin-panel{% endblock %}</span>
+<span class="ji">{% block content %}</span>
+
+<span class="tg">&lt;h1&gt;</span>Admin-panel<span class="tg">&lt;/h1&gt;</span>
+
+<span class="cm">{# ── Opprett ny seksjon ── #}</span>
+<span class="tg">&lt;form</span> <span class="at">method</span>=<span class="vl">"post"</span> <span class="at">action</span>=<span class="vl">"/admin/section/new"</span><span class="tg">&gt;</span>
+  <span class="tg">&lt;input</span>  <span class="at">name</span>=<span class="vl">"title"</span>       <span class="at">placeholder</span>=<span class="vl">"Tittel"</span>      <span class="at">required</span><span class="tg">&gt;</span>
+  <span class="tg">&lt;input</span>  <span class="at">name</span>=<span class="vl">"description"</span> <span class="at">placeholder</span>=<span class="vl">"Beskrivelse"</span><span class="tg">&gt;</span>
+  <span class="tg">&lt;input</span>  <span class="at">name</span>=<span class="vl">"emoji"</span>       <span class="at">placeholder</span>=<span class="vl">"Emoji 📚"</span><span class="tg">&gt;</span>
+  <span class="tg">&lt;button</span> <span class="at">type</span>=<span class="vl">"submit"</span><span class="tg">&gt;</span>+ Ny seksjon<span class="tg">&lt;/button&gt;</span>
+<span class="tg">&lt;/form&gt;</span>
+
+<span class="cm">{# ── Vis alle seksjoner ── #}</span>
+<span class="ji">{% for section in sections %}</span>
+<span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"admin-section"</span><span class="tg">&gt;</span>
+
+  <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"collapsible"</span> <span class="at">data-key</span>=<span class="vl">"sec-{{ section.id }}"</span><span class="tg">&gt;</span>
+    <span class="tg">&lt;span</span> <span class="at">class</span>=<span class="vl">"arrow"</span><span class="tg">&gt;</span>▼<span class="tg">&lt;/span&gt;</span>
+    <span class="tg">&lt;strong&gt;</span><span class="ji">{{ section.emoji }}</span> <span class="ji">{{ section.title }}</span><span class="tg">&lt;/strong&gt;</span>
+    <span class="tg">&lt;form</span> <span class="at">method</span>=<span class="vl">"post"</span> <span class="at">action</span>=<span class="vl">"/admin/section/{{ section.id }}/delete"</span>
+          <span class="at">style</span>=<span class="vl">"display:inline"</span><span class="tg">&gt;</span>
+      <span class="tg">&lt;button&gt;</span>🗑<span class="tg">&lt;/button&gt;</span>
+    <span class="tg">&lt;/form&gt;</span>
+  <span class="tg">&lt;/div&gt;</span>
+
+  <span class="tg">&lt;div</span> <span class="at">id</span>=<span class="vl">"sec-{{ section.id }}"</span><span class="tg">&gt;</span>
+    <span class="ji">{% for topic in section.topics %}</span>
+      <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"admin-topic"</span><span class="tg">&gt;</span>
+        <span class="tg">&lt;strong&gt;</span><span class="ji">{{ topic.title }}</span><span class="tg">&lt;/strong&gt;</span>
+        <span class="ji">{% for el in topic.elements %}</span>
+          <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"element-row"</span><span class="tg">&gt;</span>
+            <span class="tg">&lt;span&gt;</span>[<span class="ji">{{ el.type }}</span>] <span class="ji">{{ el.question or el.content[:50] }}</span><span class="tg">&lt;/span&gt;</span>
+            <span class="tg">&lt;a</span> <span class="at">href</span>=<span class="vl">"/admin/element/{{ el.id }}/answers"</span><span class="tg">&gt;</span>👥 Svar<span class="tg">&lt;/a&gt;</span>
+            <span class="tg">&lt;form</span> <span class="at">method</span>=<span class="vl">"post"</span> <span class="at">action</span>=<span class="vl">"/admin/element/{{ el.id }}/delete"</span>
+                  <span class="at">style</span>=<span class="vl">"display:inline"</span><span class="tg">&gt;</span>
+              <span class="tg">&lt;button&gt;</span>🗑<span class="tg">&lt;/button&gt;</span>
+            <span class="tg">&lt;/form&gt;</span>
+          <span class="tg">&lt;/div&gt;</span>
+        <span class="ji">{% endfor %}</span>
+      <span class="tg">&lt;/div&gt;</span>
+    <span class="ji">{% endfor %}</span>
+  <span class="tg">&lt;/div&gt;</span>
+
+<span class="tg">&lt;/div&gt;</span>
+<span class="ji">{% endfor %}</span>
+
+<span class="tg">&lt;script&gt;</span>
+document.querySelectorAll(<span class="js">'.collapsible'</span>).forEach(h => {
+  <span class="jk">const</span> key  = h.dataset.key
+  <span class="jk">const</span> body = document.getElementById(key)
+  <span class="jk">const</span> arrow = h.querySelector(<span class="js">'.arrow'</span>)
+
+  <span class="jc">// Gjenopprett lagret tilstand</span>
+  <span class="jk">if</span> (localStorage.getItem(key) === <span class="js">'collapsed'</span>) {
+    body.style.display = <span class="js">'none'</span>
+    arrow.textContent  = <span class="js">'▶'</span>
+  }
+
+  h.addEventListener(<span class="js">'click'</span>, e => {
+    <span class="jk">if</span> (e.target.closest(<span class="js">'form'</span>)) <span class="jk">return</span>  <span class="jc">// ikke kollaps ved slett-klikk</span>
+    <span class="jk">const</span> hidden = body.style.display === <span class="js">'none'</span>
+    body.style.display  = hidden ? <span class="js">''</span> : <span class="js">'none'</span>
+    arrow.textContent   = hidden ? <span class="js">'▼'</span> : <span class="js">'▶'</span>
+    localStorage.setItem(key, hidden ? <span class="js">'open'</span> : <span class="js">'collapsed'</span>)
+  })
+})
+<span class="tg">&lt;/script&gt;</span>
+
+<span class="ji">{% endblock %}</span></pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">localStorage — nettleserens hukommelse</div>
+      <ul>
+        <li><code>localStorage.setItem('nøkkel', 'verdi')</code> — Lagre en tekstverdi i nettleseren. Overlever lukking av fanen og omstart av nettleseren.</li>
+        <li><code>localStorage.getItem('nøkkel')</code> — Hent verdien. Returnerer <code>null</code> hvis nøkkelen ikke finnes.</li>
+        <li><code>if (e.target.closest('form')) return</code> — Viktig! Slett-knappen er inni headeren. Uten denne ville klikk på slett-knappen <em>også</em> kollapse seksjonen. Vi sjekker om klikket skjedde inni et skjema og stopper da kollapsen.</li>
+      </ul>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,13)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 14 ══════ -->
+  <div class="page" id="page-14">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 8 — Profil</span>
+      <span class="meta-num">STEG 14</span>
+    </div>
+    <h2>Brukerprofil med statistikk</h2>
+    <p class="tagline">Spør databasen om hva brukeren har gjort og vis det visuelt.</p>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">app.py — profil-rute</span>
+        <span class="code-lang">Python</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="dc">@app.route</span>(<span class="st">'/profil'</span>)
+<span class="dc">@login_required</span>
+<span class="kw">def</span> <span class="fn">profile</span>():
+    uid = current_user.id
+
+    answered = Progress.query.filter_by(user_id=uid).count()
+    correct  = Progress.query.filter_by(user_id=uid, correct=<span class="nb">True</span>).count()
+    visited  = TopicVisit.query.filter_by(user_id=uid).count()
+
+    <span class="cm"># Fremgang per tema</span>
+    topic_stats = []
+    <span class="kw">for</span> tema <span class="kw">in</span> Topic.query.all():
+        total = <span class="nb">len</span>(tema.elements)
+        <span class="kw">if</span> total == <span class="nb">0</span>:
+            <span class="kw">continue</span>
+        done = Progress.query.filter_by(user_id=uid).join(
+            LearningElement
+        ).filter(LearningElement.topic_id == tema.id).count()
+        topic_stats.append({
+            <span class="st">'topic'</span>: tema,
+            <span class="st">'done'</span>: done,
+            <span class="st">'total'</span>: total,
+            <span class="st">'percent'</span>: <span class="nb">int</span>(done / total * <span class="nb">100</span>)
+        })
+
+    <span class="kw">return</span> render_template(<span class="st">'profile.html'</span>,
+        answered=answered, correct=correct,
+        visited=visited, topic_stats=topic_stats
+    )</pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">JOIN i SQLAlchemy — koble to tabeller</div>
+      <p><code>Progress.query.filter_by(user_id=uid).join(LearningElement).filter(LearningElement.topic_id == tema.id).count()</code></p>
+      <p>Denne spørringen kobler <code>Progress</code> og <code>LearningElement</code> i én spørring, filtrerer på bruker-ID og tema-ID, og teller radene. Uten JOIN måtte vi hente alle Progress-rader til Python og filtrere der — mye tregere for store databaser.</p>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">templates/profile.html</span>
+        <span class="code-lang">HTML + Jinja2</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="ji">{% extends "base.html" %}</span>
+<span class="ji">{% block title %}Min profil{% endblock %}</span>
+<span class="ji">{% block content %}</span>
+
+<span class="tg">&lt;h1&gt;</span>Hei, <span class="ji">{{ current_user.username }}</span>! 🎓<span class="tg">&lt;/h1&gt;</span>
+
+<span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"stats-grid"</span><span class="tg">&gt;</span>
+  <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"stat-card"</span><span class="tg">&gt;</span>
+    <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"stat-num"</span><span class="tg">&gt;</span><span class="ji">{{ answered }}</span><span class="tg">&lt;/div&gt;</span>
+    <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"stat-label"</span><span class="tg">&gt;</span>Oppgaver besvart<span class="tg">&lt;/div&gt;</span>
+  <span class="tg">&lt;/div&gt;</span>
+  <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"stat-card"</span><span class="tg">&gt;</span>
+    <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"stat-num"</span><span class="tg">&gt;</span><span class="ji">{{ correct }}</span><span class="tg">&lt;/div&gt;</span>
+    <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"stat-label"</span><span class="tg">&gt;</span>Riktige quiz-svar<span class="tg">&lt;/div&gt;</span>
+  <span class="tg">&lt;/div&gt;</span>
+  <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"stat-card"</span><span class="tg">&gt;</span>
+    <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"stat-num"</span><span class="tg">&gt;</span><span class="ji">{{ visited }}</span><span class="tg">&lt;/div&gt;</span>
+    <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"stat-label"</span><span class="tg">&gt;</span>Temaer besøkt<span class="tg">&lt;/div&gt;</span>
+  <span class="tg">&lt;/div&gt;</span>
+<span class="tg">&lt;/div&gt;</span>
+
+<span class="tg">&lt;h2&gt;</span>Fremgang per tema<span class="tg">&lt;/h2&gt;</span>
+
+<span class="ji">{% for stat in topic_stats %}</span>
+  <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"topic-row"</span><span class="tg">&gt;</span>
+    <span class="tg">&lt;span&gt;</span><span class="ji">{{ stat.topic.title }}</span><span class="tg">&lt;/span&gt;</span>
+    <span class="tg">&lt;span&gt;</span><span class="ji">{{ stat.done }}</span>/<span class="ji">{{ stat.total }}</span><span class="tg">&lt;/span&gt;</span>
+    <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"progress-track"</span><span class="tg">&gt;</span>
+      <span class="tg">&lt;div</span> <span class="at">class</span>=<span class="vl">"progress-fill"</span>
+           <span class="at">style</span>=<span class="vl">"width: {{ stat.percent }}%"</span><span class="tg">&gt;</span><span class="tg">&lt;/div&gt;</span>
+    <span class="tg">&lt;/div&gt;</span>
+  <span class="tg">&lt;/div&gt;</span>
+<span class="ji">{% endfor %}</span>
+
+<span class="ji">{% endblock %}</span></pre>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,14)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 15 ══════ -->
+  <div class="page" id="page-15">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 9 — CSS</span>
+      <span class="meta-num">STEG 15</span>
+    </div>
+    <h2>CSS — layout, farger og interaktivitet</h2>
+    <p class="tagline">Gjør appen visuelt tiltalende med konsistente stiler.</p>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">static/style.css</span>
+        <span class="code-lang">CSS</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="cm">/* ── GLOBALE VARIABLER ─────────────────────────── */</span>
+<span class="sl">:root</span> {
+  <span class="pr">--primary</span>: <span class="un">#4f46e5</span>;
+  <span class="pr">--success</span>: <span class="un">#16a34a</span>;
+  <span class="pr">--error</span>:   <span class="un">#dc2626</span>;
+  <span class="pr">--bg</span>:      <span class="un">#f8fafc</span>;
+  <span class="pr">--text</span>:    <span class="un">#1e293b</span>;
+  <span class="pr">--border</span>:  <span class="un">#e2e8f0</span>;
+}
+
+<span class="sl">*</span> { <span class="pr">box-sizing</span>: <span class="un">border-box</span>; <span class="pr">margin</span>: <span class="un">0</span>; <span class="pr">padding</span>: <span class="un">0</span>; }
+<span class="sl">body</span> {
+  <span class="pr">font-family</span>: <span class="un">system-ui, sans-serif</span>;
+  <span class="pr">background</span>: <span class="un">var(--bg)</span>;
+  <span class="pr">color</span>: <span class="un">var(--text)</span>;
+  <span class="pr">line-height</span>: <span class="un">1.6</span>;
+}
+
+<span class="cm">/* ── NAVIGASJON ───────────────────────────────── */</span>
+<span class="sl">nav</span> {
+  <span class="pr">position</span>: <span class="un">sticky</span>;    <span class="cm">/* Klistret til toppen ved scroll */</span>
+  <span class="pr">top</span>: <span class="un">0</span>;
+  <span class="pr">z-index</span>: <span class="un">100</span>;
+  <span class="pr">background</span>: <span class="un">white</span>;
+  <span class="pr">border-bottom</span>: <span class="un">1px solid var(--border)</span>;
+  <span class="pr">height</span>: <span class="un">56px</span>;
+  <span class="pr">display</span>: <span class="un">flex</span>;
+  <span class="pr">align-items</span>: <span class="un">center</span>;
+  <span class="pr">gap</span>: <span class="un">24px</span>;
+  <span class="pr">padding</span>: <span class="un">0 32px</span>;
+}
+<span class="sl">nav a</span> {
+  <span class="pr">color</span>: <span class="un">var(--text)</span>; <span class="pr">text-decoration</span>: <span class="un">none</span>; <span class="pr">font-weight</span>: <span class="un">500</span>;
+  <span class="pr">transition</span>: <span class="un">color .15s</span>;
+}
+<span class="sl">nav a:hover</span> { <span class="pr">color</span>: <span class="un">var(--primary)</span>; }
+
+<span class="cm">/* ── INNHOLD ──────────────────────────────────── */</span>
+<span class="sl">main</span> { <span class="pr">max-width</span>: <span class="un">820px</span>; <span class="pr">margin</span>: <span class="un">40px auto</span>; <span class="pr">padding</span>: <span class="un">0 24px</span>; }
+
+<span class="cm">/* ── SEKSJONSKORT ─────────────────────────────── */</span>
+<span class="sl">.sections-grid</span> {
+  <span class="pr">display</span>: <span class="un">grid</span>;
+  <span class="pr">grid-template-columns</span>: <span class="un">repeat(auto-fill, minmax(230px, 1fr))</span>;
+  <span class="pr">gap</span>: <span class="un">16px</span>; <span class="pr">margin-top</span>: <span class="un">24px</span>;
+}
+<span class="sl">.section-card</span> {
+  <span class="pr">background</span>: <span class="un">white</span>; <span class="pr">border</span>: <span class="un">1px solid var(--border)</span>;
+  <span class="pr">border-radius</span>: <span class="un">12px</span>; <span class="pr">padding</span>: <span class="un">24px</span>;
+  <span class="pr">text-decoration</span>: <span class="un">none</span>; <span class="pr">color</span>: <span class="un">inherit</span>;
+  <span class="pr">display</span>: <span class="un">block</span>; <span class="pr">transition</span>: <span class="un">transform .15s, box-shadow .15s</span>;
+}
+<span class="sl">.section-card:hover</span> {
+  <span class="pr">transform</span>: <span class="un">translateY(-3px)</span>;
+  <span class="pr">box-shadow</span>: <span class="un">0 8px 24px rgba(0,0,0,.08)</span>;
+}
+
+<span class="cm">/* ── QUIZ ─────────────────────────────────────── */</span>
+<span class="sl">.quiz-block</span> {
+  <span class="pr">background</span>: <span class="un">white</span>; <span class="pr">border-radius</span>: <span class="un">12px</span>;
+  <span class="pr">padding</span>: <span class="un">24px</span>; <span class="pr">margin</span>: <span class="un">20px 0</span>;
+  <span class="pr">border</span>: <span class="un">1px solid var(--border)</span>;
+}
+<span class="sl">.quiz-btn</span> {
+  <span class="pr">display</span>: <span class="un">block</span>; <span class="pr">width</span>: <span class="un">100%</span>; <span class="pr">padding</span>: <span class="un">12px 16px</span>;
+  <span class="pr">margin</span>: <span class="un">8px 0</span>; <span class="pr">text-align</span>: <span class="un">left</span>;
+  <span class="pr">border</span>: <span class="un">1px solid var(--border)</span>; <span class="pr">border-radius</span>: <span class="un">8px</span>;
+  <span class="pr">background</span>: <span class="un">white</span>; <span class="pr">cursor</span>: <span class="un">pointer</span>;
+  <span class="pr">transition</span>: <span class="un">background .15s, border-color .15s</span>;
+}
+<span class="sl">.quiz-btn:hover:not(:disabled)</span> { <span class="pr">background</span>: <span class="un">#f8fafc</span>; }
+<span class="sl">.quiz-btn.correct</span> {
+  <span class="pr">background</span>: <span class="un">#dcfce7</span>; <span class="pr">border-color</span>: <span class="un">var(--success)</span>; <span class="pr">color</span>: <span class="un">#166534</span>;
+}
+<span class="sl">.quiz-btn.wrong</span> {
+  <span class="pr">background</span>: <span class="un">#fee2e2</span>; <span class="pr">border-color</span>: <span class="un">var(--error)</span>; <span class="pr">color</span>: <span class="un">#991b1b</span>;
+}
+
+<span class="cm">/* ── FREMGANGSLINJE ───────────────────────────── */</span>
+<span class="sl">.progress-track</span> {
+  <span class="pr">background</span>: <span class="un">var(--border)</span>; <span class="pr">border-radius</span>: <span class="un">4px</span>;
+  <span class="pr">height</span>: <span class="un">8px</span>; <span class="pr">overflow</span>: <span class="un">hidden</span>; <span class="pr">flex</span>: <span class="un">1</span>;
+}
+<span class="sl">.progress-fill</span> {
+  <span class="pr">background</span>: <span class="un">var(--primary)</span>; <span class="pr">height</span>: <span class="un">100%</span>;
+  <span class="pr">transition</span>: <span class="un">width .4s ease</span>;
+}
+
+<span class="cm">/* ── FLASH-MELDINGER ──────────────────────────── */</span>
+<span class="sl">.alert</span>         { <span class="pr">padding</span>: <span class="un">12px 16px</span>; <span class="pr">border-radius</span>: <span class="un">8px</span>; <span class="pr">margin-bottom</span>: <span class="un">16px</span>; }
+<span class="sl">.alert.error</span>   { <span class="pr">background</span>: <span class="un">#fee2e2</span>; <span class="pr">color</span>: <span class="un">#991b1b</span>; }
+<span class="sl">.alert.success</span> { <span class="pr">background</span>: <span class="un">#dcfce7</span>; <span class="pr">color</span>: <span class="un">#166534</span>; }
+
+<span class="cm">/* ── SKJEMA-ELEMENTER ─────────────────────────── */</span>
+<span class="sl">input[type="text"], input[type="password"],
+textarea, select</span> {
+  <span class="pr">width</span>: <span class="un">100%</span>; <span class="pr">padding</span>: <span class="un">10px 14px</span>;
+  <span class="pr">border</span>: <span class="un">1px solid var(--border)</span>; <span class="pr">border-radius</span>: <span class="un">8px</span>;
+  <span class="pr">font-size</span>: <span class="un">15px</span>; <span class="pr">margin-bottom</span>: <span class="un">12px</span>;
+  <span class="pr">transition</span>: <span class="un">border-color .15s, box-shadow .15s</span>;
+}
+<span class="sl">input:focus, textarea:focus</span> {
+  <span class="pr">outline</span>: <span class="un">none</span>;
+  <span class="pr">border-color</span>: <span class="un">var(--primary)</span>;
+  <span class="pr">box-shadow</span>: <span class="un">0 0 0 3px rgba(79,70,229,.15)</span>;
+}
+<span class="sl">button[type="submit"]</span> {
+  <span class="pr">padding</span>: <span class="un">10px 20px</span>; <span class="pr">background</span>: <span class="un">var(--primary)</span>;
+  <span class="pr">color</span>: <span class="un">white</span>; <span class="pr">border</span>: <span class="un">none</span>; <span class="pr">border-radius</span>: <span class="un">8px</span>;
+  <span class="pr">font-size</span>: <span class="un">15px</span>; <span class="pr">cursor</span>: <span class="un">pointer</span>; <span class="pr">transition</span>: <span class="un">background .15s</span>;
+}
+<span class="sl">button[type="submit"]:hover</span> { <span class="pr">background</span>: <span class="un">#4338ca</span>; }</pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">CSS-konsepter som er verdt å forstå dypt</div>
+      <ul>
+        <li><code>:root { --primary: #4f46e5; }</code> — CSS custom properties (variabler). Endrer du fargen her, oppdateres den overalt i filen automatisk. Essensielt for vedlikehold.</li>
+        <li><code>position: sticky; top: 0; z-index: 100;</code> — Navigasjonen forblir synlig mens du scroller. <code>z-index: 100</code> sørger for at den legger seg over annet innhold.</li>
+        <li><code>grid-template-columns: repeat(auto-fill, minmax(230px, 1fr))</code> — Responsivt rutenett uten media queries. Lag flest mulig kolonner som er minst 230px brede. Smalere skjerm → færre kolonner, alt automatisk.</li>
+        <li><code>transition: transform .15s, box-shadow .15s</code> — Animer flere egenskaper samtidig. Hover-effekten på kortene er glatt fordi begge egenskapene animeres.</li>
+        <li><code>box-shadow: 0 0 0 3px rgba(79,70,229,.15)</code> — Focus-ring: x-offset=0, y-offset=0, blur=0, spread=3px. En synlig, tilgjengelig markering av aktivt skjemafelt.</li>
+      </ul>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,15)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 16–20 SAMLET STEG ══════ -->
+  <div class="page" id="page-16">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 9 — CSS</span>
+      <span class="meta-num">STEG 16</span>
+    </div>
+    <h2>Markdown-forhåndsvisning i admin</h2>
+    <p class="tagline">Live rendering av Markdown mens admin skriver.</p>
+
+    <p>Legg til dette i admin-panelet der admin oppretter Markdown-elementer:</p>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">templates/admin/panel.html — Markdown preview</span>
+        <span class="code-lang">HTML + JS</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="cm">&lt;!-- Last inn marked.js fra CDN --&gt;</span>
+<span class="tg">&lt;script</span> <span class="at">src</span>=<span class="vl">"https://cdn.jsdelivr.net/npm/marked/marked.min.js"</span><span class="tg">&gt;&lt;/script&gt;</span>
+
+<span class="tg">&lt;textarea</span>
+  <span class="at">id</span>=<span class="vl">"md-input"</span>
+  <span class="at">name</span>=<span class="vl">"content"</span>
+  <span class="at">rows</span>=<span class="vl">"8"</span>
+  <span class="at">placeholder</span>=<span class="vl">"Skriv Markdown her..."</span><span class="tg">&gt;&lt;/textarea&gt;</span>
+
+<span class="tg">&lt;div</span> <span class="at">id</span>=<span class="vl">"md-preview"</span> <span class="at">class</span>=<span class="vl">"markdown-content"</span><span class="tg">&gt;</span>
+  Forhåndsvisning vises her...
+<span class="tg">&lt;/div&gt;</span>
+
+<span class="tg">&lt;script&gt;</span>
+  <span class="jk">const</span> input   = document.getElementById(<span class="js">'md-input'</span>)
+  <span class="jk">const</span> preview = document.getElementById(<span class="js">'md-preview'</span>)
+
+  input.addEventListener(<span class="js">'input'</span>, () => {
+    preview.innerHTML = marked.parse(input.value)
+  })
+<span class="tg">&lt;/script&gt;</span></pre>
+    </div>
+    <div class="ann">
+      <div class="ann-title">Hva skjer?</div>
+      <ul>
+        <li><code>'input'</code>-hendelsen — Fyres av hver gang innholdet i textarea endres (ved hvert tastetrykk). Raskere enn <code>'change'</code> som bare fyres når textarea mister fokus.</li>
+        <li><code>marked.parse(input.value)</code> — Biblioteket <code>marked.js</code> konverterer Markdown til HTML direkte i nettleseren — ingen serverrunde nødvendig for forhåndsvisning.</li>
+        <li><code>preview.innerHTML = ...</code> — Setter HTML-innholdet til preview-diven. Siden vi stoler på Markdown-utgangen (admin skriver det selv), er det trygt å sette innerHTML direkte.</li>
+      </ul>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,16)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 17 ══════ -->
+  <div class="page" id="page-17">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 10 — Ferdigstilling</span>
+      <span class="meta-num">STEG 17</span>
+    </div>
+    <h2>Fullfør app.py — bunnen av filen</h2>
+    <p class="tagline">Sett alt sammen og sørg for at appen starter korrekt.</p>
+
+    <p>Slik skal den <strong>absolutte bunnen</strong> av <code>app.py</code> se ut:</p>
+
+    <div class="code-wrap">
+      <div class="code-head">
+        <span class="code-fn">app.py — bunnen</span>
+        <span class="code-lang">Python</span>
+        <button class="copy-btn" onclick="cp(this)">Kopier</button>
+      </div>
+      <pre class="cb"><span class="cm"># ── Legg til manglende slett-ruter ──────────────────</span>
+<span class="dc">@app.route</span>(<span class="st">'/admin/topic/&lt;int:tid&gt;/delete'</span>, methods=[<span class="st">'POST'</span>])
+<span class="dc">@admin_required</span>
+<span class="kw">def</span> <span class="fn">delete_topic</span>(tid):
+    db.session.delete(Topic.query.get_or_404(tid))
+    db.session.commit()
+    <span class="kw">return</span> redirect(url_for(<span class="st">'admin_panel'</span>))
+
+
+<span class="dc">@app.route</span>(<span class="st">'/admin/element/&lt;int:eid&gt;/delete'</span>, methods=[<span class="st">'POST'</span>])
+<span class="dc">@admin_required</span>
+<span class="kw">def</span> <span class="fn">delete_element</span>(eid):
+    db.session.delete(LearningElement.query.get_or_404(eid))
+    db.session.commit()
+    <span class="kw">return</span> redirect(url_for(<span class="st">'admin_panel'</span>))
+
+
+<span class="cm"># ── Oppstart ─────────────────────────────────────────</span>
+<span class="kw">if</span> __name__ == <span class="st">'__main__'</span>:
+    app.run(debug=<span class="nb">True</span>)</pre>
+    </div>
+
+    <div class="box why">
+      <span class="box-icon">🧠</span>
+      <div class="box-body">
+        <div class="box-title">Hvorfor bare POST for sletting — ikke DELETE?</div>
+        <p>HTML-skjemaer støtter bare GET og POST. HTTP-metoden DELETE finnes, men nettlesere sender den aldri fra et vanlig skjema. Den brukes av JavaScript og API-er. For enkle webapper med HTML-skjemaer bruker vi POST for alle skriveoperasjoner (opprette, endre, slette). URL-strukturen forteller hva som gjøres: <code>/delete</code> i URL-en gjør intensjonen tydelig.</p>
+      </div>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,17)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 18 ══════ -->
+  <div class="page" id="page-18">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 10 — Ferdigstilling</span>
+      <span class="meta-num">STEG 18</span>
+    </div>
+    <h2>Test-sjekkliste</h2>
+    <p class="tagline">Gå gjennom alle funksjoner systematisk før du kaller appen ferdig.</p>
+
+    <p>Kjør <code>python app.py</code> og gå gjennom hvert punkt:</p>
+
+    <div class="box tip">
+      <span class="box-icon">🔗</span>
+      <div class="box-body">
+        <div class="box-title">Åpne i nettleseren</div>
+        <p><strong>http://localhost:5000</strong> — din lokale server. Bare du kan nå den (ennå).</p>
+      </div>
+    </div>
+
+    <ul>
+      <li>Besøk <code>/login</code> uten å være innlogget — ser du innloggingssiden?</li>
+      <li>Prøv å gå til <code>/</code> uten å være innlogget — redirectes du til login?</li>
+      <li>Registrer en ny bruker — fungerer det?</li>
+      <li>Logg inn og ut — fungerer begge deler?</li>
+      <li>Logg inn som <strong>admin / admin123</strong> — ser du Admin-lenken i navbaren?</li>
+      <li>Gå til <code>/admin</code> som vanlig bruker — får du 403?</li>
+      <li>Opprett en seksjon, et tema og alle tre elementtyper fra admin-panelet</li>
+      <li>Besøk temaet som vanlig bruker — vises alle elementene?</li>
+      <li>Svar på en quiz — farges knappen grønn/rød uten sidereload?</li>
+      <li>Lever et åpent svar — vises det ved neste sidebesøk?</li>
+      <li>Sjekk profilsiden — viser den riktige tall?</li>
+      <li>Sjekk <code>/admin/element/1/answers</code> — viser den brukerens svar?</li>
+    </ul>
+
+    <div class="box task">
+      <span class="box-icon">✍️</span>
+      <div class="box-body">
+        <div class="box-title">Utfordring: finn og fiks én bug</div>
+        <p>Prøv å lage to brukere med samme brukernavn. Hva skjer? Fikser appen dette elegant? Prøv å sende inn et tomt open-svar. Prøv å besøke <code>/topic/9999</code> — hva skjer? Disse kanttilfellene er gode å teste.</p>
+      </div>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,18)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 19 ══════ -->
+  <div class="page" id="page-19">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 10 — Ferdigstilling</span>
+      <span class="meta-num">STEG 19</span>
+    </div>
+    <h2>Feilsøking — når ting går galt</h2>
+    <p class="tagline">De vanligste feilene og hvordan du leser dem.</p>
+
+    <table class="tbl">
+      <tr><th>Feilmelding</th><th>Årsak</th><th>Løsning</th></tr>
+      <tr>
+        <td><code>ModuleNotFoundError: No module named 'flask'</code></td>
+        <td>venv er ikke aktivert</td>
+        <td>Kjør <code>venv\Scripts\activate</code></td>
+      </tr>
+      <tr>
+        <td><code>TemplateNotFound: index.html</code></td>
+        <td>Filen finnes ikke i <code>templates/</code></td>
+        <td>Sjekk at filen heter nøyaktig det samme som i <code>render_template()</code></td>
+      </tr>
+      <tr>
+        <td><code>KeyError: 'username'</code></td>
+        <td>Skjemafeltet mangler <code>name="username"</code></td>
+        <td>Sjekk HTML — name-attributtet må matche <code>request.form['username']</code></td>
+      </tr>
+      <tr>
+        <td><code>sqlalchemy.exc.OperationalError: no such table</code></td>
+        <td><code>db.create_all()</code> er ikke kjørt</td>
+        <td>Slett <code>instance/database.db</code> og start appen på nytt</td>
+      </tr>
+      <tr>
+        <td><code>jinja2.exceptions.UndefinedError</code></td>
+        <td>En variabel som brukes i malen ble ikke sendt fra Python</td>
+        <td>Sjekk <code>render_template('fil.html', variabel=verdi)</code></td>
+      </tr>
+      <tr>
+        <td>Siden er blank / ingen feil</td>
+        <td>JavaScript-feil stopper koden</td>
+        <td>Trykk F12 → Console-fanen i nettleseren</td>
+      </tr>
+    </table>
+
+    <div class="box tip">
+      <span class="box-icon">💡</span>
+      <div class="box-body">
+        <div class="box-title">Gull-tips for feilsøking</div>
+        <p><strong>Flask debugger:</strong> Når <code>debug=True</code>, vises feilmeldinger direkte i nettleseren med komplett stack trace. Les den fra bunnen — den underste linjen peker oftest på din kode.</p>
+        <p><strong>print() er din venn:</strong> <code>print(request.form)</code> i en rute printer alle innsendte data til terminalen. Uvurderlig for å se hva skjemaet faktisk sender.</p>
+        <p><strong>F12 → Network:</strong> Her ser du alle HTTP-forespørsler, inkludert fetch()-kall fra JavaScript. Du kan se statuskodet og svaret fra Flask.</p>
+      </div>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,19)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Markér fullført
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" onclick="next()">Neste →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ STEG 20 ══════ -->
+  <div class="page" id="page-20">
+    <div class="step-meta">
+      <span class="meta-phase">Fase 10 — Ferdigstilling</span>
+      <span class="meta-num">STEG 20</span>
+    </div>
+    <h2>Du er i mål — og hva nå?</h2>
+    <p class="tagline">Du har bygget noe reelt. Her er neste steg på reisen.</p>
+
+    <div class="box win">
+      <span class="box-icon">🎉</span>
+      <div class="box-body">
+        <div class="box-title">Hva du faktisk har lært</div>
+        <p>Du har bygget en fullstendig nettapp med <strong>brukerautentisering</strong>, <strong>relasjonsdatabase</strong>, <strong>dynamiske sider</strong>, <strong>asynkron JavaScript</strong> og et <strong>admin-grensesnitt</strong>. Dette er ikke trivielt — det er kjernekonseptene bak de fleste webapper som eksisterer.</p>
+      </div>
+    </div>
+
+    <div class="divider"><span>Neste steg — velg din vei</span></div>
+
+    <p><strong>Vil du forbedre appen videre?</strong></p>
+    <ul>
+      <li><strong>Paginering</strong> — <code>Section.query.paginate(page=1, per_page=10)</code> deler opp lange lister</li>
+      <li><strong>Søk</strong> — <code>LearningElement.query.filter(LearningElement.content.ilike(f'%{søk}%'))</code></li>
+      <li><strong>Bootstrap</strong> — ett CDN-import gir profesjonelt design uten å skrive all CSS</li>
+      <li><strong>Fil-upload</strong> — <code>Flask-Uploads</code> lar admin laste opp bilder til elementer</li>
+    </ul>
+
+    <p><strong>Vil du lære mer Flask?</strong></p>
+    <ul>
+      <li><strong>flask.palletsprojects.com</strong> — den offisielle dokumentasjonen er utmerket</li>
+      <li><strong>Miguel Grinbergs "Flask Mega-Tutorial"</strong> — den beste gratis ressursen for å gå dypere</li>
+      <li><strong>SQLAlchemy-dokumentasjonen</strong> — for å forstå JOIN, subqueries og avansert spørringer</li>
+    </ul>
+
+    <p><strong>Vil du publisere appen på internett?</strong></p>
+    <ul>
+      <li><strong>Railway.app</strong> eller <strong>Render.com</strong> — gratis hosting for Flask-apper, koble til GitHub og deploy med ett klikk</li>
+      <li>Bytt <code>debug=False</code> og sett en skikkelig hemmelig nøkkel før du publiserer</li>
+      <li>Bytt fra SQLite til PostgreSQL for produksjon (Railway tilbyr dette)</li>
+    </ul>
+
+    <div class="box task">
+      <span class="box-icon">✍️</span>
+      <div class="box-body">
+        <div class="box-title">Siste utfordring</div>
+        <p>Legg til én funksjon du kom på selv som mangler i appen. Kan være en søkefunksjon, leaderboard over hvem som har mest riktige svar, mulighet for admin til å redigere (ikke bare slette) et element, eller noe helt annet. Bruk det du har lært — du vet nok til å finne ut av det.</p>
+      </div>
+    </div>
+
+    <div class="step-footer">
+      <button class="done-btn" onclick="done(this,20)">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+        Ferdig! Markér fullført 🎓
+      </button>
+      <div class="nav-btns">
+        <button class="nav-btn" onclick="prev()">← Forrige</button>
+        <button class="nav-btn" disabled>Siste steg ✓</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+</div><!-- /shell -->
+
+<script>
+// ═══════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════
+const STEPS = [
+  null,
+  { phase: 'Fase 1 — Oppsett',          title: 'Installer Python og VS Code' },
+  { phase: 'Fase 1 — Oppsett',          title: 'Mappestruktur og venv' },
+  { phase: 'Fase 2 — Flask-grunnlag',   title: 'Den første Flask-appen' },
+  { phase: 'Fase 2 — Flask-grunnlag',   title: 'base.html og Jinja2-arv' },
+  { phase: 'Fase 3 — Database',         title: 'Databasemodeller (ORM)' },
+  { phase: 'Fase 3 — Database',         title: 'Opprett DB og admin-bruker' },
+  { phase: 'Fase 4 — Autentisering',    title: 'Flask-Login og sesjoner' },
+  { phase: 'Fase 4 — Autentisering',    title: 'Login, register, utlogging' },
+  { phase: 'Fase 5 — Innholdsider',     title: 'Forside og seksjons-ruter' },
+  { phase: 'Fase 5 — Innholdsider',     title: 'topic.html — 3 innholdstyper' },
+  { phase: 'Fase 6 — Interaktivitet',   title: 'Quiz med fetch() og JSON' },
+  { phase: 'Fase 7 — Admin',            title: 'Admin-dekorator og CRUD' },
+  { phase: 'Fase 7 — Admin',            title: 'Admin-panel med kollaps' },
+  { phase: 'Fase 8 — Profil',           title: 'Brukerprofil og statistikk' },
+  { phase: 'Fase 9 — CSS',              title: 'CSS — layout og interaksjon' },
+  { phase: 'Fase 9 — CSS',              title: 'Markdown-forhåndsvisning' },
+  { phase: 'Fase 10 — Ferdigstilling',  title: 'Fullfør app.py' },
+  { phase: 'Fase 10 — Ferdigstilling',  title: 'Test-sjekkliste' },
+  { phase: 'Fase 10 — Ferdigstilling',  title: 'Feilsøking' },
+  { phase: 'Fase 10 — Ferdigstilling',  title: 'Du er i mål! 🎓' },
+];
+
+const SK = 'lp_v2_done';
+let cur = 0;
+
+function getDone() { try { return JSON.parse(localStorage.getItem(SK) || '[]'); } catch { return []; } }
+function saveDone(a) { localStorage.setItem(SK, JSON.stringify(a)); }
+
+// ═══════════════════════════════════════════
+// SIDEBAR
+// ═══════════════════════════════════════════
+function buildSidebar() {
+  const nav = document.getElementById('sb-nav');
+  const doneArr = getDone();
+  let lastPhase = '';
+  nav.innerHTML = '';
+  STEPS.forEach((s, i) => {
+    if (!s) return;
+    if (s.phase !== lastPhase) {
+      const lbl = document.createElement('div');
+      lbl.className = 'sb-phase';
+      lbl.textContent = s.phase;
+      nav.appendChild(lbl);
+      lastPhase = s.phase;
+    }
+    const el = document.createElement('div');
+    el.className = 'sb-item'
+      + (doneArr.includes(i) ? ' done' : '')
+      + (i === cur ? ' active' : '');
+    el.innerHTML = `<span class="sn">${String(i).padStart(2,'0')}</span>${s.title}`;
+    el.onclick = () => go(i);
+    nav.appendChild(el);
+  });
+}
+
+function updateProgress() {
+  const d = getDone(), total = STEPS.length - 1;
+  document.getElementById('sb-fill').style.width = (d.length / total * 100) + '%';
+  document.getElementById('sb-count').textContent = `${d.length} / ${total}`;
+}
+
+function updateTopbar() {
+  const el = document.getElementById('tb-crumb');
+  if (cur === 0) { el.textContent = 'Oversikt'; return; }
+  const s = STEPS[cur];
+  el.innerHTML = `<span style="color:var(--ink3)">${s.phase}</span> &nbsp;/&nbsp; <strong>${s.title}</strong>`;
+}
+
+function buildCoverToc() {
+  const phases = {};
+  STEPS.forEach((s, i) => {
+    if (!s) return;
+    if (!phases[s.phase]) phases[s.phase] = { first: i, count: 0 };
+    phases[s.phase].count++;
+  });
+  document.getElementById('cover-toc').innerHTML =
+    Object.entries(phases).map(([ph, info]) =>
+      `<div class="toc-card" onclick="go(${info.first})">
+         <div class="toc-ph">${ph}</div>
+         <div class="toc-ti">${STEPS[info.first].title}</div>
+         <div class="toc-ct">${info.count} steg</div>
+       </div>`
+    ).join('');
+}
+
+// ═══════════════════════════════════════════
+// NAVIGASJON
+// ═══════════════════════════════════════════
+function go(n) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + n).classList.add('active');
+  cur = n;
+  buildSidebar();
+  updateTopbar();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  const active = document.querySelector('.sb-item.active');
+  if (active) active.scrollIntoView({ block: 'nearest' });
+}
+
+function next() { if (cur < STEPS.length - 1) go(cur + 1); }
+function prev() { if (cur > 1) go(cur - 1); else if (cur === 1) go(0); }
+
+// ═══════════════════════════════════════════
+// FULLFØRING
+// ═══════════════════════════════════════════
+function done(btn, n) {
+  const arr = getDone();
+  if (!arr.includes(n)) { arr.push(n); saveDone(arr); }
+  btn.classList.add('completed');
+  btn.innerHTML = '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> Fullført ✓';
+  buildSidebar();
+  updateProgress();
+}
+
+function restoreDone() {
+  getDone().forEach(n => {
+    const page = document.getElementById('page-' + n);
+    if (!page) return;
+    const btn = page.querySelector('.done-btn');
+    if (btn) {
+      btn.classList.add('completed');
+      btn.innerHTML = '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg> Fullført ✓';
+    }
+  });
+}
+
+// ═══════════════════════════════════════════
+// KOPIER KODE
+// ═══════════════════════════════════════════
+function cp(btn) {
+  const pre = btn.closest('.code-wrap').querySelector('pre');
+  navigator.clipboard.writeText(pre.innerText).then(() => {
+    btn.textContent = 'Kopiert ✓';
+    btn.classList.add('ok');
+    setTimeout(() => { btn.textContent = 'Kopier'; btn.classList.remove('ok'); }, 2000);
+  });
+}
+
+// ═══════════════════════════════════════════
+// BOOT
+// ═══════════════════════════════════════════
+buildCoverToc();
+buildSidebar();
+updateProgress();
+updateTopbar();
+restoreDone();
+</script>
+</body>
+</html>
