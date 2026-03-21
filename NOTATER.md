@@ -5,7 +5,7 @@
 ```python
 app = Flask(__name__)
 ```
-Lager Flask-appen. `__name__` brukes til å finne hvilken fil som skal starte opp, og gjør at Flask vet hvor den finner `templates` og `static`-mapper.
+Lager Flask-appen. `__name__` brukes til å finne hvilken filens modulstil, og gjør at Flask vet hvor den finner `templates` og `static`-mapper.
 
 ---
 
@@ -35,7 +35,7 @@ Kobler Flask til databasen, slik at databasen blir tilgjengelig overalt i appen.
 ```python
 login_manager = LoginManager(app)
 ```
-"LoginManager(app)" kobler Flask til login-systemet. Dette Gjør at `current_user` blir tilgjengelig i alle ruter. Dette hjelper med åhåndtere session cookies og vite hvem som er logget inn.
+(`LoginManager(app)`) kobler Flask til login-systemet. Dette gjør at `current_user` blir tilgjengelig i alle ruter. Dette hjelper med åhåndtere session cookies og vite hvem som er logget inn.
 
 ---
 
