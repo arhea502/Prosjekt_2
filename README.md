@@ -2,7 +2,7 @@
 
 > **Merk:** Denne nettsiden ble planlagt og designet ved hjelp av kunstig intelligens (KI). Jeg brukte KI som et læringsverktøy for å generere en detaljert beskrivelse av hva jeg ønsket å bygge funksjoner, struktur, og logikk og brukte dette som utgangspunkt for å forstå hva jeg trenger å lære. Målet er å gjenskape plattformen selv, steg for steg, mens jeg lærer Python, Flask og webutvikling fra bunnen av.
 
-Målet er ikke å kunne alt sammen, men å lære så mye som jeg kan i løpet av 8 uker.
+Målet er ikke å kunne alt sammen, eller å bli fardig, men å lære så mye som jeg kan i løpet av 8 uker.
 
 **PS** Se (´NOTATER.md´) for å forstå hva jeg egentlig har lært. 
 ---
