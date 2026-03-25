@@ -56,3 +56,16 @@ Login_manager er et object fra et bibliotek som styrer innlogning, og user_loade
 
 Denne funksjonen lar flask_login hente brukere fra databasen. Den kalles automatisk ved hver forespørsel som bruker session-cookies med bruker-ID. Funksjonen henter brukeren fra databasen (`return User.query.get`) og konverterer cookie-ID-en til heltall (`int(user_id)`) siden ID-en i databasen er et heltall, og user_id ofte er en string.
 
+---
+
+
+# User model
+```python
+class User(UserMixin, db.Model):
+    id            = db.Column(db.Integer, primary_key=True)
+    username      = db.Column(db.String(80),  unique=True,  nullable=False)
+    password_hash = db.Column(db.String(200),                  nullable=False)
+    is_admin      = db.Column(db.Boolean, default=False)
+```
+
+Dette er en database model. Alt som refererer til (`db.model`) er database model der (`db.column`) er en rad i en table. (`Usermixin`) er noe som brukes ved innlogning-systemer i flask.  Meninga er å kunne legge ting i databaen hvor sqlite gjør alt bak kulisenet uten at du trenger å gjøre det manuelt. Alt ligger i vanlig database rader som id, username, password og om det er amin. Db.int, db.sting og db boolean definerer hva slags datatype det skal legges inn i databasen. (`primary_key`) er sånn at id-er blir skrevet unikt nedover automatisk som 1, 2, 3 ogsv. Unique betyr at det ikke kan være samme username flere ganger. (`Nullable`) betyr at feltet ikke kan være tomt. (200) og (80) er varchar, det er for at det skal være et begrenset mengde bokstaver brukt så databasen ikke larger så mye. På (`is_admin`) så er default false of boolean fordi ingen skal kunne bli admin uten grunn.

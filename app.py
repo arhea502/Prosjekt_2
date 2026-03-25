@@ -53,7 +53,7 @@ class Section(db.Model):
     topics      = db.relationship('Topic', backref='section', lazy=True,
                                   cascade='all, delete-orphan')
 
-# Topic model
+# Topic model   
 class Topic(db.Model): 
     id         = db.Column(db.Integer, primary_key=True)
     title      = db.Column(db.String(100), nullable=False)
@@ -70,7 +70,7 @@ class LearningElement(db.Model):
     question       = db.Column(db.Text)
     option_a       = db.Column(db.String(200))
     option_b       = db.Column(db.String(200))
-    option_c       = db.Column(db.String(200))
+    option_c       = db.Column(db.String(200)) 
     option_d       = db.Column(db.String(200))
     correct_answer = db.Column(db.String(1))
     answer_key     = db.Column(db.Text)
