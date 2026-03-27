@@ -156,7 +156,9 @@ class Topic(db.Model):
 Topics classen er samme som Section, bare at denne har (`db.relationship`) med `LearningElement`. Fordi planen er jo at det er en lærings nettside med ulike seksjoner, ulike topics og ulike oppgaver.
 
 Så nå er det 
+
 *Nettverk → IP-adresse → Quiz/Åpen spørsmål/Description*
+
 Og på grunn av `backref='section'` så kan man gå baklengs også.
 
 ---
