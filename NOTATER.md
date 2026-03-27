@@ -17,6 +17,7 @@ app.config['SECRET_KEY'] = '108158379'
 ```
 
 Brukes til å signere session cookies. Innlogging fungerer ikke uten denne nøkkelen.
+
 Session cookies er midlertidige filer som brukes av nettsider for å huske informasjon om deg mens du navigerer fra side til side i løpet av ett enkelt besøk.
 
 Session cookies lagrer informasjon om brukeren (for eksempel innloggingsstatus) mellom forespørsler til serveren.
