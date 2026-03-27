@@ -90,7 +90,7 @@ Meningen er å kunne legge ting i databasen, hvor SQLite gjør alt bak kulissene
 | `password_hash` | `db.String(200)` | Tekst, maks 200 tegn. Passord blir lagret som en hash, så de vises aldri i klartekst |
 | `is_admin` | `db.Boolean` | True/False. `default=False` betyr at ingen blir admin uten grunn |
 
-`db.Integer`, `db.String` og `db.Boolean` definerer hva slags datatype som skal legges inn i databasen. `nullable=False` betyr at feltet ikke kan være tomt. Tallene i parentes – `(80)` og `(200)` – fungerer som `VARCHAR` i SQL: de begrenser antall tegn slik at databasen ikke lagrer unødvendig mye.
+`db.Integer`, `db.String` og `db.Boolean` definerer hva slags datatype som skal legges inn i databasen. `nullable=False` betyr at feltet ikke kan være tomt. Tallene i parentes `(80)` og `(200)` fungerer som `VARCHAR` i SQL: de begrenser antall tegn slik at databasen ikke lagrer unødvendig mye.
 
 I databasen ser det slik ut:
 
