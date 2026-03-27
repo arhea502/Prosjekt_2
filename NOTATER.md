@@ -17,6 +17,9 @@ app.config['SECRET_KEY'] = '108158379'
 ```
 
 Brukes til å signere session cookies. Innlogging fungerer ikke uten denne nøkkelen.
+Session cookies er midlertidige filer som brukes av nettsider for å huske informasjon om deg mens du navigerer fra side til side i løpet av ett enkelt besøk.
+
+Session cookies lagrer informasjon om brukeren (for eksempel innloggingsstatus) mellom forespørsler til serveren.
 
 ---
 
@@ -95,3 +98,41 @@ I databasen ser det slik ut:
 |----|----------|---------------|----------|
 | 1  | ola      | `(hash)`      | False    |
 | 2  | kari     | `(hash)`      | True     |
+
+---
+
+## Section-modellen
+
+```python
+class Section(db.Model):
+    id          = db.Column(db.Integer, primary_key=True)
+    title       = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    emoji       = db.Column(db.String(10))
+    topics      = db.relationship('Topic', backref='section', lazy=True,
+                                  cascade='all, delete-orphan')
+```
+
+Denne tabellen er for seksjoner innenfor min læringsplatform. Akkurat som `User` har den `id`, `title` og `description`. Noe som er annerledes er at den har `String(100)` og `Text`. En lærer fortalte meg at `String` er begrenset og `Text` er bare tekst — så det er det jeg tenker det er.
+
+I `topics` er det en ny `db.relationship` som connecter tabeller sammen. I dette eksempelet skal en section ha sub-sections, altså topics innenfor en section. Eksempel: *Nettverk → IP-adresse*.
+
+| Parameter | Forklaring |
+|---|---|
+| `backref='section'` | Lager en reverse connection, så man kan gå fra en topic og tilbake til seksjonen den tilhører |
+| `lazy=True` | Bestemmer hvordan data loades fra databasen. Når den er `True` loades topics kun når du faktisk aksesserer dem |
+| `cascade='all, delete-orphan'` | Sørger for at det ikke finnes foreldreløse topics. Når du sletter en section, slettes alle topics innenfor den med. Gjelder alle cascade-operasjoner (save, change, delete). Topics kan også slettes individuelt uten å slette hele seksjonen |
+
+Basically betyr det:
+
+> *"En section har mange topics. Hver topic vet hvilken section de tilhører. Når en section blir fjernet, blir topics fjernet med. Når en topic er fjernet fra en section, er den fjernet helt."*
+
+```
+Section (1)
+   ├── Topic A
+   ├── Topic B
+   └── Topic C
+
+Delete Section  →  sletter A, B og C
+Remove Topic B  →  Topic B slettes
+```
