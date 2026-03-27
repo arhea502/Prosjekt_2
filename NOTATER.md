@@ -113,7 +113,7 @@ class Section(db.Model):
                                   cascade='all, delete-orphan')
 ```
 
-Denne tabellen er for seksjoner innenfor min læringsplatform. Akkurat som `User` har den `id`, `title` og `description`. Noe som er annerledes er at den har `String(100)` og `Text`. En lærer fortalte meg at `String` er begrenset og `Text` er bare tekst uten begrensning. 
+Denne tabellen er for seksjoner innenfor min læringsplatform. Akkurat som `User` har den `id`, `title` og `description`. Noe som er annerledes er at den har `String(100)` og `Text`. En lærer fortalte meg at `String` er begrenset og `Text` er bare tekst uten begrensning, men også at `String` er en datatype imens `Text` er bare informasjonstekst som vi bruker for å beskrive inhold.
 
 I `topics` er det en ny `db.relationship` som connecter tabeller sammen. I dette eksempelet skal en section ha sub-sections, altså topics innenfor en section. Eksempel: *Nettverk → IP-adresse*.
 
