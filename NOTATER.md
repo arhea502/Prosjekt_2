@@ -114,8 +114,11 @@ class Section(db.Model):
                                   cascade='all, delete-orphan')
 ```
 
-Denne tabellen er for seksjoner innenfor min læringsplatform. Akkurat som `User` har den `id`, `title` og `description`. Noe som er annerledes er at den har `String(100)` og `Text`. En lærer fortalte meg at `String` er begrenset og `Text` er bare tekst uten begrensning, men også at `String` er en datatype imens `Text` er bare informasjonstekst som vi bruker for å beskrive inhold.
+Denne tabellen er for seksjoner innenfor min læringsplattform. Akkurat som User har den id, title og description. Noe som er annerledes er at den bruker både `String(100)` og `Text`.
 
+String og Text er begge datatyper i databasen. Forskjellen er at String har en maks lengde (for eksempel 100 tegn), mens Text brukes for lengre tekst uten en fast lengdebegrensning.
+
+String brukes ofte til korte tekster som brukernavn, e-post og titler, mens Text brukes til lengre innhold som beskrivelser.
 I `topics` er det en ny `db.relationship` som connecter tabeller sammen. I dette eksempelet skal en section ha sub-sections, altså topics innenfor en section. Eksempel: *Nettverk → IP-adresse*.
 
 | Parameter | Forklaring |
@@ -137,3 +140,23 @@ Section (1)
 Delete Section  →  sletter A, B og C
 Remove Topic B  →  Topic B slettes
 ```
+
+---
+
+# Topic model   
+
+```python
+class Topic(db.Model): 
+    id         = db.Column(db.Integer, primary_key=True)
+    title      = db.Column(db.String(100), nullable=False)
+    section_id = db.Column(db.Integer, db.ForeignKey('section.id'), nullable=False)
+    elements   = db.relationship('LearningElement', backref='topic', lazy=True,
+                                 cascade='all, delete-orphan')
+```
+Topics classen er samme som Section, bare at denne har (`db.relationship`) med `LearningElement`. Fordi planen er jo at det er en lærings nettside med ulike seksjoner, ulike topics og ulike oppgaver.
+
+Så nå er det 
+*Nettverk → IP-adresse → Quiz/Åpen spørsmål/Description*
+Og på grunn av `backref='section'` så kan man gå baklengs også.
+
+---

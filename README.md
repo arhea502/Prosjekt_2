@@ -9,7 +9,7 @@ Målet er ikke å kunne alt sammen, eller å bli fardig, men å lære så mye so
 
 ## Hva er dette?
 
-IT-Læringsplattform er en nettbasert læringsapp bygget med Python og Flask. Den lar en administrator lage strukturert læringsinnhold — som seksjoner, temaer og oppgaver — som brukere kan gå gjennom for å lære IT-fag.
+IT-Læringsplattform er en nettbasert læringsapp bygget med Python og Flask. Den lar en administrator lage strukturert læringsinnhold som seksjoner, temaer og oppgaver som brukere kan gå gjennom for å lære IT-fag.
 
 Plattformen støtter tre typer læringsinnhold:
 - **Markdown-tekst** — forklaringer med formatert tekst, kodeeksempler og tabeller
@@ -39,7 +39,7 @@ Brukere får en personlig profilside som viser fremgang, quiz-resultater og hvil
 
 ### Teknisk
 - Sesjonsbasert innlogging via Flask-Login
-- Passord lagres aldri i klartekst — kun som hash (bcrypt via Werkzeug)
+- Passord lagres aldri i klartekst kun som hash (bcrypt via Werkzeug)
 - Databasen er en enkelt SQLite-fil og opprettes automatisk ved oppstart
 - Admin-kontoen opprettes automatisk (brukernavn: `admin`, passord: `admin123`)
 
