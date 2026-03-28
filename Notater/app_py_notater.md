@@ -176,7 +176,58 @@ class LearningElement(db.Model):
     answer_key     = db.Column(db.Text)
 ```
 
-Strukturen er nå:
+Denne koden sier noe om hvor læringselementer skal lagres. Det er ikke visningen eller logikken av oppgavene selv, men bare lagring.
+
+Kolonnen `type` sier noe om hvilken type læringselement det er. Dataene tolkes ulikt avhengig av verdien her.
+
+#### Kolonner
+
+| Kolonne | Type | Brukes av |
+|---|---|---|
+| `id` | `db.Integer` | Alle |
+| `topic_id` | `db.Integer` (FK) | Alle |
+| `type` | `db.String(20)` | Alle, styrer tolkningen |
+| `content` | `db.Text` | `text` |
+| `question` | `db.Text` | `quiz` |
+| `option_a` – `option_d` | `db.String(200)` | `quiz` |
+| `correct_answer` | `db.String(1)` | `quiz` |
+| `answer_key` | `db.Text` | Åpne spørsmål |
+
+#### Slik tolkes `type`
+
+**`type = "text"`** – læringselement med tekstinnhold:
+
+```python
+LearningElement(
+    type="text",
+    content="Dette er en forklaring"
+)
+```
+
+| type | content | question | option_a |
+|------|---------|----------|----------|
+| text | "Dette er..." | NULL | NULL |
+
+---
+
+**`type = "quiz"`** – flervalgsoppgave:
+
+```python
+LearningElement(
+    type="quiz",
+    question="Hva er 2 + 2?",
+    option_a="3",
+    option_b="4"
+)
+```
+
+| type | content | question | option_a | option_b |
+|------|---------|----------|----------|----------|
+| quiz | NULL | "Hva er 2+2?" | "3" | "4" |
+
+---
+
+Den ferdige strukturen ser slik ut:
 
 ```
 Nettverk → IP-adresse → Quiz / Åpen spørsmål / Description
@@ -185,3 +236,4 @@ Nettverk → IP-adresse → Quiz / Åpen spørsmål / Description
 På grunn av `backref='section'` kan man gå baklengs også.
 
 ---
+
