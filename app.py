@@ -95,3 +95,14 @@ class TopicVisit(db.Model):
     user_id  = db.Column(db.Integer, db.ForeignKey('user.id'),  nullable=False)
     topic_id = db.Column(db.Integer, db.ForeignKey('topic.id'), nullable=False)
 
+with app.app_context():
+    db.create_all()
+    if not User.query.filter_by(username='admin').first():
+        db.session.add(User(
+            username='admin',
+            password_hash=generate_password_hash('admin123'),
+            is_admin=True
+        ))
+        db.session.commit()
+
+

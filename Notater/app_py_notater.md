@@ -1,8 +1,12 @@
 # APP.PY – Dokumentasjon
 
+Dokumentasjon av Flask-appens konfigurasjon, innloggingssystem og databasemodeller.
+
 ---
 
 ## Konfigurasjon
+
+> Setter opp Flask-appen, databasetilkobling og hemmelig nøkkel for session-håndtering.
 
 ```python
 app = Flask(__name__)
@@ -38,7 +42,9 @@ Kobler Flask til databasen, slik at databasen blir tilgjengelig overalt i appen.
 
 ---
 
-## Flask-Login + Databasemodeller
+## Flask-Login
+
+> Setter opp innloggingssystemet og definerer hvordan Flask henter og gjenkjenner innloggede brukere.
 
 ```python
 login_manager = LoginManager(app)
@@ -68,9 +74,15 @@ Denne funksjonen lar `flask_login` hente brukere fra databasen. Den kalles autom
 
 ---
 
-## Modeller
+## Databasemodeller
+
+> Definerer strukturen til databasen. Hver klasse tilsvarer én tabell, og hver `db.Column` tilsvarer én kolonne i den tabellen.
+
+---
 
 ### `User`
+
+> Lagrer alle brukere i systemet – både vanlige brukere og admins.
 
 ```python
 class User(UserMixin, db.Model):
@@ -103,6 +115,8 @@ Meningen er å kunne legge ting i databasen, hvor SQLite gjør alt bak kulissene
 ---
 
 ### `Section`
+
+> Lagrer de overordnede seksjonene i læringsplattformen – det øverste nivået i innholdshierarkiet.
 
 ```python
 class Section(db.Model):
@@ -144,6 +158,8 @@ Remove Topic B  →  Topic B slettes
 
 ### `Topic`
 
+> Lagrer undertemaer innenfor en section – det midterste nivået i innholdshierarkiet.
+
 ```python
 class Topic(db.Model): 
     id         = db.Column(db.Integer, primary_key=True)
@@ -160,6 +176,8 @@ En annen viktig ting er `db.ForeignKey('section.id')`. Dette er koden som faktis
 ---
 
 ### `LearningElement`
+
+> Lagrer selve innholdet i et topic – enten tekst, quiz eller åpne spørsmål.
 
 ```python
 class LearningElement(db.Model):
@@ -237,3 +255,196 @@ På grunn av `backref='section'` kan man gå baklengs også.
 
 ---
 
+### `Progress`
+
+> Lagrer om en bruker har svart riktig eller feil på et læringselement.
+
+```python
+class Progress(db.Model):
+    id         = db.Column(db.Integer, primary_key=True)
+    user_id    = db.Column(db.Integer, db.ForeignKey('user.id'),             nullable=False)
+    element_id = db.Column(db.Integer, db.ForeignKey('learning_element.id'), nullable=False)
+    correct    = db.Column(db.Boolean)
+```
+
+Denne koden er ganske rett fram. Den har egen `id`. Den lager en `user_id` bassert på database `user.id`-en som er i bruk. `element_id` tar den fra `learning_element` id-en for å kunne se hvilken læringselement det gjelder. `correct` er True/False for å se om svaret er riktig eller feil.
+
+> **(FK)** betyr Foreign Key, altså kobling til en annen tabell.
+
+| Kolonne | Type | Forklaring |
+|---|---|---|
+| `id` | `db.Integer` | Primærnøkkel |
+| `user_id` | `db.Integer` (FK) | Peker til `user.id` – hvilken bruker det gjelder |
+| `element_id` | `db.Integer` (FK) | Peker til `learning_element.id` – hvilket læringselement det gjelder |
+| `correct` | `db.Boolean` | `True` hvis svaret er riktig, `False` hvis feil |
+
+**Eksempel i databasen:**
+
+| id | user_id | element_id | correct |
+|----|---------|------------|---------|
+| 1  | 1       | 5          | True    |
+| 2  | 1       | 6          | False   |
+| 3  | 2       | 5          | True    |
+
+Som du kan se har 2 brukere gjort samme oppgave riktig, men bruker 1 gjorde 2 oppgaver og fikk en av dem feil.
+
+---
+
+### `OpenAnswer`
+
+> Lagrer brukerens tekstsvar på åpne spørsmål, uten å vurdere om det er riktig eller feil.
+
+```python
+class OpenAnswer(db.Model):
+    id         = db.Column(db.Integer, primary_key=True)
+    user_id    = db.Column(db.Integer, db.ForeignKey('user.id'),             nullable=False)
+    element_id = db.Column(db.Integer, db.ForeignKey('learning_element.id'), nullable=False)
+    answer     = db.Column(db.Text)
+```
+
+Denne tabellen er ganske lik `Progress`. Eneste forskjell er at istede for at den lagrer om svaret er riktig eller ikke, så lagrer den bare svaret du gi. Fordi det er en åpen oppgave.
+
+| Kolonne | Type | Forklaring |
+|---|---|---|
+| `id` | `db.Integer` | Primærnøkkel |
+| `user_id` | `db.Integer` (FK) | Peker til `user.id` – hvilken bruker det gjelder |
+| `element_id` | `db.Integer` (FK) | Peker til `learning_element.id` – hvilket læringselement det gjelder |
+| `answer` | `db.Text` | Svaret brukeren skrev inn |
+
+**Eksempel i databasen:**
+
+| id | user_id | element_id | answer |
+|----|---------|------------|--------|
+| 1  | 1       | 6          | "Dette er mitt svar" |
+| 2  | 2       | 6          | "Jeg skrev noe annet" |
+
+Her kan du senere hente alle svar til et læringselement og evaluere dem manuelt eller via kode.
+
+---
+
+### `TopicVisit`
+
+> Lagrer hvilke topics en bruker har besøkt brukes til å spore fremgang i innholdshierarkiet.
+
+```python
+class TopicVisit(db.Model):
+    id       = db.Column(db.Integer, primary_key=True)
+    user_id  = db.Column(db.Integer, db.ForeignKey('user.id'),  nullable=False)
+    topic_id = db.Column(db.Integer, db.ForeignKey('topic.id'), nullable=False)
+```
+
+Dette er en enkel kode som sier hvilke topics brukeren har besøkt. Det gjør den ved å referere til `user.id` og `topic.id` som er i bruk der og da.
+
+| Kolonne | Type | Forklaring |
+|---|---|---|
+| `id` | `db.Integer` | Primærnøkkel |
+| `user_id` | `db.Integer` (FK) | Peker til `user.id` – hvilken bruker det gjelder |
+| `topic_id` | `db.Integer` (FK) | Peker til `topic.id` – hvilket topic som ble besøkt |
+
+---
+
+## Total databasestruktur
+
+> Oversikt over alle tabeller og hvordan de henger sammen via relasjoner og fremmednøkler.
+
+### Innholdshierarki
+
+```
+INNHOLDSHIERARKI
+════════════════════════════════════════════════════════════════════════
+
++-----------+         +-----------+         +-------------------+
+|  Section  |         |   Topic   |         | LearningElement   |
++-----------+         +-----------+         +-------------------+
+| id (PK)   |1      * | id (PK)   |1      * | id (PK)           |
+| title     +-------->| title     +-------->| topic_id (FK)     |
+| description         | section_id (FK)     | type              |
+| emoji     |         |           |         | content           |
+|           |         | .section  |<--------| question          |
+|           |         | (backref) |         | option_a/b/c/d    |
+| .topics   |<--------+           |         | correct_answer    |
+| (backref) |         | .elements |<--------| answer_key        |
++-----------+         | (backref) |         |                   |
+                      +-----------+         +-------------------+
+```
+
+### Brukersporing
+
+```
+BRUKERSPORING
+════════════════════════════════════════════════════════════════════════
+
+                      +-----------+
+                      |   User    |
+                      +-----------+
+                      | id (PK)   |
+                      | username  |
+                      | password_hash
+                      | is_admin  |
+                      +-----------+
+                       1 |  | 1  | 1
+           +-----------+ |  |    +-------------+
+           |             |  |                  |
+           | *           |  | *                | *
++---------------+  +---------------+  +---------------+
+|   Progress    |  |  OpenAnswer   |  |  TopicVisit   |
++---------------+  +---------------+  +---------------+
+| id (PK)       |  | id (PK)       |  | id (PK)       |
+| user_id (FK)  |  | user_id (FK)  |  | user_id (FK)  |
+| element_id(FK)|  | element_id(FK)|  | topic_id (FK) |
+| correct       |  | answer        |  +-------+-------+
++-------+-------+  +-------+-------+          |
+        |                  |                  |
+        | Kobles til       | Kobles til       | Kobles til
+        | LearningElement  | LearningElement  | Topic
+        +------------------+                  |
+                  |                           |
+                  v                           v
+        +-------------------+         +-----------+
+        | LearningElement   |         |   Topic   |
+        | (se over)         |         | (se over) |
+        +-------------------+         +-----------+
+```
+
+### Nøkkelforklaringer
+
+```
+NØKKELFORKLARINGER
+════════════════════════════════════════════════════════════════════════
+  PK       = Primary Key (unik identifikator per rad)
+  FK       = Foreign Key (peker til PK i en annen tabell)
+  backref  = automatisk omvendt referanse via SQLAlchemy
+  1      * = én-til-mange-relasjon
+```
+
+---
+
+## Admin-oppsett
+
+> Oppretter alle databasetabeller ved oppstart, og legger til en standard admin-bruker hvis den ikke allerede finnes.
+
+```python
+with app.app_context():
+    db.create_all()
+    if not User.query.filter_by(username='admin').first():
+        db.session.add(User(
+            username='admin',
+            password_hash=generate_password_hash('admin123'),
+            is_admin=True
+        ))
+        db.session.commit()
+```
+
+Koden `with app.app_context():` handler om at flask trenger en "applikasjonkontekst" for å vite hvilken app som brukes når du jobber med databasen. Dette gjør sånn at databasen kan brukes uten en HTTP-forespørsel. Uten denne vil for eksempel `db.create_all()` ikke vite hvor databasen er.
+
+`db.create_all()` lager alle tabellene som er definert med `db.Model` fra tidligere. Nå er tabellene `User`, `Topic`, `Section` osv faktisk opprettet.
+
+`User.query.filter_by(username='admin').first()` sjekker om det allerede finnes en bruker med brukernavn `"admin"`.
+
+`filter_by` lager en SQL WHERE-klausul som brukes til å filterere rader. Denne bestemmer hvilke rader som skal hentes, oppdateres eller slettes, og `first()` henter første rad eller `None` hvis den ikke finnes.
+
+`db.session.add(User(...))` legger til et nytt objekt (`User`) i databasen. Det er ikke lagret ennå – det er bare midlertidig i "session".
+
+`db.session.commit()` er det som faktisk lagrer det du legger til.
+
+Innenfor `session.add(User(...))` finner du tabellene vi lagde i `User`-modellen: `username`, `password_hash` og `is_admin`. `username` og `is_admin` er ganske rett frem. `password_hash` er litt annerledes – her har vi satt den til `"admin123"`, men pakket inn i `generate_password_hash`. Det er noe Flask / Werkzeug-biblioteket bruker for å sjekke passord når noen logger inn.
