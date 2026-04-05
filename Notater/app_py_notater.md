@@ -493,6 +493,53 @@ Denne koden lager en decorator, som tar inn en annen funksjon `f` som argument. 
 
 ---
 
+## Hva er `*args` og `**kwargs`?
+
+- `*args` samler alle posisjonelle argumenter funksjonen får.
+- `**kwargs` samler alle navngitte argumenter funksjonen får.
+- De gjør at dekoratoren fungerer uansett hvilke argumenter den beskyttede funksjonen trenger – du trenger ikke vite det på forhånd.
+
+**Eksempel:**
+
+```python
+def admin_panel(id, action):
+    return f"Admin {id} gjør {action}"
+```
+
+Hvis Flask sender `id=5` og `action="delete"`, vil dekoratoren motta:
+
+```python
+args = (5,)
+kwargs = {'action': 'delete'}
+```
+
+Da kan den kalle originalfunksjonen med:
+
+```python
+f(*args, **kwargs)  # => admin_panel(5, action='delete')
+```
+
+**Hvorfor det er viktig:**
+
+Flask sender parameterne fra URL eller form til funksjonen. Dekoratoren må videreformidle disse til originalfunksjonen. Uten `*args` og `**kwargs` måtte du hardkode hvilke argumenter dekoratoren tar imot, noe som gjør den lite fleksibel.
+
+Uten `*args` og `**kwargs`:
+
+```python
+def decorated(id):  # Hva om admin_panel plutselig trenger 2 argumenter?
+    ...
+```
+
+Da vil dekoratoren feile hvis funksjonen du dekorerer endrer signatur.
+
+**Kort sagt** – `*args` og `**kwargs` gjør at dekoratoren:
+
+1. Kan pakke inn hvilken som helst funksjon, uansett hvilke argumenter den tar.
+2. Kan sende alle argumenter videre til originalfunksjonen.
+3. Holder koden fleksibel og gjenbrukbar.
+
+---
+
 ## Visualisering
 
 Tenk at du har dette:
