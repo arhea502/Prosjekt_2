@@ -82,7 +82,7 @@ Denne funksjonen lar `flask_login` hente brukere fra databasen. Den kalles autom
 
 ### `User`
 
-> Lagrer alle brukere i systemet – både vanlige brukere og admins.
+> Lagrer alle brukere i systemet, både vanlige brukere og admins.
 
 ```python
 class User(UserMixin, db.Model):
@@ -443,8 +443,150 @@ Koden `with app.app_context():` handler om at flask trenger en "applikasjonkonte
 
 `filter_by` lager en SQL WHERE-klausul som brukes til å filterere rader. Denne bestemmer hvilke rader som skal hentes, oppdateres eller slettes, og `first()` henter første rad eller `None` hvis den ikke finnes.
 
-`db.session.add(User(...))` legger til et nytt objekt (`User`) i databasen. Det er ikke lagret ennå – det er bare midlertidig i "session".
+`db.session.add(User(...))` legger til et nytt objekt (`User`) i databasen. Det er ikke lagret ennå, det er bare midlertidig i "session".
 
 `db.session.commit()` er det som faktisk lagrer det du legger til.
 
-Innenfor `session.add(User(...))` finner du tabellene vi lagde i `User`-modellen: `username`, `password_hash` og `is_admin`. `username` og `is_admin` er ganske rett frem. `password_hash` er litt annerledes – her har vi satt den til `"admin123"`, men pakket inn i `generate_password_hash`. Det er noe Flask / Werkzeug-biblioteket bruker for å sjekke passord når noen logger inn.
+Innenfor `session.add(User(...))` finner du tabellene vi lagde i `User`-modellen: `username`, `password_hash` og `is_admin`. `username` og `is_admin` er ganske rett frem. `password_hash` er litt annerledes. Her har vi satt den til `"admin123"`, men pakket inn i `generate_password_hash`. Det er noe Flask / Werkzeug-biblioteket bruker for å sjekke passord når noen logger inn.
+
+---
+
+# `@admin_required` Decorator Forklaring
+
+Denne koden definerer hvor admin kreves. Man legger `@admin_required` over en route, og den gir bare tilgang til brukere med admin-privilegier. Ellers sendes brukeren til error 403, som betyr "Forbidden" det vil si at handlingen du prøver å utføre ikke er tillatt.
+
+---
+
+# `@admin_required` Decorator
+
+```python
+from functools import wraps
+from flask import abort
+from flask_login import current_user, login_required
+
+def admin_required(f):
+    @wraps(f)
+    @login_required
+    def decorated(*args, **kwargs):
+        if not current_user.is_admin:
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated
+```
+
+---
+
+## Hvordan det fungerer
+
+Denne koden lager en decorator, som tar inn en annen funksjon `f` som argument. `f` er funksjonen du ønsker å beskytte, for eksempel `admin_panel`, som bare admin skal ha tilgang til.
+
+| Del | Forklaring |
+|-----|-----------|
+| `@wraps(f)` | Bevarer navnet og docstringen til originalfunksjonen `f`. Flask bruker dette for routing og debugging. Uten `wraps` vil Python tro at funksjonen heter `decorated`, selv om den egentlig representerer en annen funksjon. |
+| `@login_required` | Sørger for at brukeren må være logget inn før funksjonen kjøres. |
+| `def decorated(*args, **kwargs)` | Lager en ny funksjon som pakker inn `f`. `*args` tar imot posisjonelle argumenter, og `**kwargs` tar imot navngitte argumenter. Dette gjør at dekoratoren kan sende alle typer input videre til funksjonen, uansett hvilke argumenter den opprinnelig krever. |
+| `if not current_user.is_admin: abort(403)` | Sjekker om brukeren har admin-privilegier. Hvis ikke, stoppes funksjonen og en 403 Forbidden returneres. |
+| `return f(*args, **kwargs)` | Kjør originalfunksjonen `f` med alle argumentene som Flask sendte inn. |
+| `return decorated` | Returnerer den nye funksjonen (`decorated`), som erstatter originalfunksjonen. Den sørger for at innlogging og admin-sjekk skjer før originalfunksjonen kjøres. |
+
+> `*args` og `**kwargs` gjør at dekoratoren kan ta imot alle argumenter fra Flask, uten å vite på forhånd hva funksjonen trenger. Dette kan være verdier fra URL-en, query-parametere eller andre inputs.
+
+---
+
+## Visualisering
+
+Tenk at du har dette:
+
+```python
+@app.route("/admin/<int:id>")
+@admin_required
+def admin_panel(id):
+    return f"Admin {id}"
+```
+
+### Hva skjer bak kulissene?
+
+Når Python ser `@admin_required`, gjør den egentlig:
+
+```python
+admin_panel = admin_required(admin_panel)
+```
+
+- `f` blir satt til originalfunksjonen (`admin_panel`)
+- Dekoratoren lager `decorated`, som nå er funksjonen Flask faktisk kaller når noen besøker `/admin/<id>`
+
+### Når siden kalles
+
+URL:
+
+```
+/admin/5
+```
+
+Flask gjør:
+
+```python
+decorated(5)
+```
+
+Da er:
+
+```python
+args = (5,)
+kwargs = {}
+```
+
+Inni dekoratoren:
+
+```python
+return f(*args, **kwargs)
+```
+
+Blir:
+
+```python
+admin_panel(5)
+```
+
+- `decorated` kjører først sjekken om brukeren er innlogget og admin
+- Deretter kjører den originalfunksjonen med samme input som Flask sendte (`id=5` i dette tilfellet)
+- `*args` pakker ut posisjonelle argumenter, og `**kwargs` pakker ut navngitte argumenter
+
+---
+
+## Kobling til databasen
+
+Hvis du har en database med brukere:
+
+| Id | Username | Password | IsAdmin |
+|----|----------|----------|---------|
+| 1  | admin    | hsh      | True    |
+| 2  | ola      | xyz      | False   |
+
+**Eksempler:**
+
+- Bruker med `Id=1` går til `/admin/1`
+  - Flask kaller `decorated(1)`
+  - `current_user.is_admin` = `True` → kjører `admin_panel(1)`
+- Bruker med `Id=2` går til `/admin/2`
+  - `current_user.is_admin` = `False` → 403 Forbidden
+
+> **Viktig:** `*args` og `**kwargs` inneholder input fra Flask, ikke `current_user`. Admin-sjekken bruker `current_user` for å avgjøre privilegier, uavhengig av hva som sendes i URL-en.
+
+---
+
+## Flytdiagram
+
+```python
+admin_panel = admin_required(admin_panel)  # admin_panel blir decorated
+
+admin_panel(5)  # faktisk: decorated(5)
+                # 1. sjekk innlogging
+                # 2. sjekk admin
+                # 3. hvis OK → f(5) = original admin_panel(5)
+```
+
+- `decorated` = wrapper-funksjon
+- `f` = originalfunksjonen
+- `decorated` returnerer resultatet fra `f`, men er fortsatt en egen funksjon
+- `@wraps(f)` sørger for at navnet og docstringen til `f` beholdes

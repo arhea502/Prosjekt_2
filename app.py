@@ -105,4 +105,14 @@ with app.app_context():
         ))
         db.session.commit()
 
+def admin_required(f):
+    @wraps(f)
+    @login_required
+    def decorated(*args, **kwargs):
+        if not current_user.is_admin:
+            abort(403)
+        return f(*args, **kwargs)
+    return decorated
+
+
 
