@@ -4,6 +4,25 @@ Dokumentasjon av Flask-appens konfigurasjon, innloggingssystem og databasemodell
 
 ---
 
+## Innhold
+
+- [Konfigurasjon](#konfigurasjon)
+- [Flask-Login](#flask-login)
+- [Databasemodeller](#databasemodeller)
+  - [User](#user)
+  - [Section](#section)
+  - [Topic](#topic)
+  - [LearningElement](#learningelement)
+  - [Progress](#progress)
+  - [OpenAnswer](#openanswer)
+  - [TopicVisit](#topicvisit)
+  - [Total databasestruktur](#total-databasestruktur)
+- [Admin-oppsett](#admin-oppsett)
+- [@admin_required Decorator](#admin_required-decorator)
+- [Login-rute](#login-rute)
+
+---
+
 ## Konfigurasjon
 
 > Setter opp Flask-appen, databasetilkobling og hemmelig nøkkel for session-håndtering.
@@ -12,7 +31,7 @@ Dokumentasjon av Flask-appens konfigurasjon, innloggingssystem og databasemodell
 app = Flask(__name__)
 ```
 
-Lager Flask-appen. `__name__` brukes til å finne hvilken filens modulstil, og gjør at Flask vet hvor den finner `templates`- og `static`-mapper.
+Lager Flask-appen. `__name__` brukes til å finne filens modulstil, og gjør at Flask vet hvor den finner `templates`- og `static`-mapper.
 
 ---
 
@@ -50,7 +69,7 @@ Kobler Flask til databasen, slik at databasen blir tilgjengelig overalt i appen.
 login_manager = LoginManager(app)
 ```
 
-`LoginManager(app)` kobler Flask til login-systemet. Dette gjør at `current_user` blir tilgjengelig i alle ruter, og hjelper med å håndtere session cookies og vite hvem som er logget inn.
+Kobler Flask til login-systemet. Dette gjør at `current_user` blir tilgjengelig i alle ruter, og hjelper med å håndtere session cookies og vite hvem som er logget inn.
 
 ---
 
@@ -58,7 +77,7 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 ```
 
-Hvis noen prøver å gå til en beskyttet side uten å være logget inn, vil de automatisk bli sendt til ruten `login`. Senere i `app.routes` forklares det hvordan dette brukes.
+Hvis noen prøver å gå til en beskyttet side uten å være logget inn, vil de automatisk bli sendt til ruten `login`.
 
 ---
 
@@ -68,9 +87,9 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 ```
 
-`login_manager` er et objekt fra et bibliotek som styrer innlogging, og `user_loader` er en callback-funksjon som Flask trenger. Når en bruker allerede er logget inn, lagrer Flask `user_id`, og når den trenger ID-en igjen sier den bare: *"Gi meg brukeren med denne user_id."*
+`user_loader` er en callback-funksjon som Flask trenger. Når en bruker allerede er logget inn, lagrer Flask `user_id`, og når den trenger ID-en igjen sier den bare: *"Gi meg brukeren med denne user_id."*
 
-Denne funksjonen lar `flask_login` hente brukere fra databasen. Den kalles automatisk ved hver forespørsel som bruker session-cookies med bruker-ID. Funksjonen henter brukeren fra databasen (`return User.query.get`) og konverterer cookie-ID-en til heltall (`int(user_id)`), siden ID-en i databasen er et heltall og `user_id` ofte er en string.
+Funksjonen lar `flask_login` hente brukere fra databasen. Den kalles automatisk ved hver forespørsel som bruker session-cookies med bruker-ID. Den henter brukeren fra databasen (`return User.query.get`) og konverterer cookie-ID-en til heltall (`int(user_id)`), siden ID-en i databasen er et heltall og `user_id` ofte er en string.
 
 ---
 
@@ -302,7 +321,7 @@ class OpenAnswer(db.Model):
     answer     = db.Column(db.Text)
 ```
 
-Denne tabellen er ganske lik `Progress`. Eneste forskjell er at istede for at den lagrer om svaret er riktig eller ikke, så lagrer den bare svaret du gi. Fordi det er en åpen oppgave.
+Denne tabellen er ganske lik `Progress`. Eneste forskjell er at istedet for at den lagrer om svaret er riktig eller ikke, så lagrer den bare svaret du gir. Fordi det er en åpen oppgave.
 
 | Kolonne | Type | Forklaring |
 |---|---|---|
@@ -324,7 +343,7 @@ Her kan du senere hente alle svar til et læringselement og evaluere dem manuelt
 
 ### `TopicVisit`
 
-> Lagrer hvilke topics en bruker har besøkt brukes til å spore fremgang i innholdshierarkiet.
+> Lagrer hvilke topics en bruker har besøkt – brukes til å spore fremgang i innholdshierarkiet.
 
 ```python
 class TopicVisit(db.Model):
@@ -435,29 +454,23 @@ with app.app_context():
         db.session.commit()
 ```
 
-Koden `with app.app_context():` handler om at flask trenger en "applikasjonkontekst" for å vite hvilken app som brukes når du jobber med databasen. Dette gjør sånn at databasen kan brukes uten en HTTP-forespørsel. Uten denne vil for eksempel `db.create_all()` ikke vite hvor databasen er.
+`with app.app_context():` handler om at Flask trenger en "applikasjonskontekst" for å vite hvilken app som brukes når du jobber med databasen. Dette gjør sånn at databasen kan brukes uten en HTTP-forespørsel. Uten denne vil for eksempel `db.create_all()` ikke vite hvor databasen er.
 
 `db.create_all()` lager alle tabellene som er definert med `db.Model` fra tidligere. Nå er tabellene `User`, `Topic`, `Section` osv faktisk opprettet.
 
-`User.query.filter_by(username='admin').first()` sjekker om det allerede finnes en bruker med brukernavn `"admin"`.
+`User.query.filter_by(username='admin').first()` sjekker om det allerede finnes en bruker med brukernavn `"admin"`. `filter_by` lager en SQL WHERE-klausul som filtrerer rader, og `first()` henter første rad eller `None` hvis den ikke finnes.
 
-`filter_by` lager en SQL WHERE-klausul som brukes til å filterere rader. Denne bestemmer hvilke rader som skal hentes, oppdateres eller slettes, og `first()` henter første rad eller `None` hvis den ikke finnes.
-
-`db.session.add(User(...))` legger til et nytt objekt (`User`) i databasen. Det er ikke lagret ennå, det er bare midlertidig i "session".
+`db.session.add(User(...))` legger til et nytt objekt (`User`) i databasen. Det er ikke lagret ennå – det er bare midlertidig i "session".
 
 `db.session.commit()` er det som faktisk lagrer det du legger til.
 
-Innenfor `session.add(User(...))` finner du tabellene vi lagde i `User`-modellen: `username`, `password_hash` og `is_admin`. `username` og `is_admin` er ganske rett frem. `password_hash` er litt annerledes. Her har vi satt den til `"admin123"`, men pakket inn i `generate_password_hash`. Det er noe Flask / Werkzeug-biblioteket bruker for å sjekke passord når noen logger inn.
+Innenfor `session.add(User(...))` finner du tabellene vi lagde i `User`-modellen: `username`, `password_hash` og `is_admin`. `username` og `is_admin` er ganske rett frem. `password_hash` er litt annerledes – her har vi satt den til `"admin123"`, men pakket inn i `generate_password_hash`. Det er noe Flask/Werkzeug-biblioteket bruker for å sjekke passord når noen logger inn.
 
 ---
 
-# `@admin_required` Decorator Forklaring
+## `@admin_required` Decorator
 
-Denne koden definerer hvor admin kreves. Man legger `@admin_required` over en route, og den gir bare tilgang til brukere med admin-privilegier. Ellers sendes brukeren til error 403, som betyr "Forbidden" det vil si at handlingen du prøver å utføre ikke er tillatt.
-
----
-
-# `@admin_required` Decorator
+> Definerer hvor admin kreves. Man legger `@admin_required` over en route, og den gir bare tilgang til brukere med admin-privilegier. Ellers sendes brukeren til error 403 – "Forbidden" – det vil si at handlingen du prøver å utføre ikke er tillatt.
 
 ```python
 from functools import wraps
@@ -474,16 +487,14 @@ def admin_required(f):
     return decorated
 ```
 
----
-
-## Hvordan det fungerer
+### Hvordan det fungerer
 
 Denne koden lager en decorator, som tar inn en annen funksjon `f` som argument. `f` er funksjonen du ønsker å beskytte, for eksempel `admin_panel`, som bare admin skal ha tilgang til.
 
 | Del | Forklaring |
 |-----|-----------|
 | `@wraps(f)` | Bevarer navnet og docstringen til originalfunksjonen `f`. Flask bruker dette for routing og debugging. Uten `wraps` vil Python tro at funksjonen heter `decorated`, selv om den egentlig representerer en annen funksjon. |
-| `@login_required` | Sørger for at brukeren må være logget inn før funksjonen kjøres. |
+| `@login_required` | Sørger for at brukeren må være logget inn før funksjonen kjøres. Ikke-innloggede brukere sendes til `login_manager.login_view`, som er satt til `'login'`. |
 | `def decorated(*args, **kwargs)` | Lager en ny funksjon som pakker inn `f`. `*args` tar imot posisjonelle argumenter, og `**kwargs` tar imot navngitte argumenter. Dette gjør at dekoratoren kan sende alle typer input videre til funksjonen, uansett hvilke argumenter den opprinnelig krever. |
 | `if not current_user.is_admin: abort(403)` | Sjekker om brukeren har admin-privilegier. Hvis ikke, stoppes funksjonen og en 403 Forbidden returneres. |
 | `return f(*args, **kwargs)` | Kjør originalfunksjonen `f` med alle argumentene som Flask sendte inn. |
@@ -493,7 +504,7 @@ Denne koden lager en decorator, som tar inn en annen funksjon `f` som argument. 
 
 ---
 
-## Hva er `*args` og `**kwargs`?
+### Hva er `*args` og `**kwargs`?
 
 - `*args` samler alle posisjonelle argumenter funksjonen får.
 - `**kwargs` samler alle navngitte argumenter funksjonen får.
@@ -540,7 +551,7 @@ Da vil dekoratoren feile hvis funksjonen du dekorerer endrer signatur.
 
 ---
 
-## Visualisering
+### Visualisering
 
 Tenk at du har dette:
 
@@ -551,8 +562,6 @@ def admin_panel(id):
     return f"Admin {id}"
 ```
 
-### Hva skjer bak kulissene?
-
 Når Python ser `@admin_required`, gjør den egentlig:
 
 ```python
@@ -562,7 +571,7 @@ admin_panel = admin_required(admin_panel)
 - `f` blir satt til originalfunksjonen (`admin_panel`)
 - Dekoratoren lager `decorated`, som nå er funksjonen Flask faktisk kaller når noen besøker `/admin/<id>`
 
-### Når siden kalles
+#### Når siden kalles
 
 URL:
 
@@ -601,7 +610,7 @@ admin_panel(5)
 
 ---
 
-## Kobling til databasen
+### Kobling til databasen
 
 Hvis du har en database med brukere:
 
@@ -609,8 +618,6 @@ Hvis du har en database med brukere:
 |----|----------|----------|---------|
 | 1  | admin    | hsh      | True    |
 | 2  | ola      | xyz      | False   |
-
-**Eksempler:**
 
 - Bruker med `Id=1` går til `/admin/1`
   - Flask kaller `decorated(1)`
@@ -622,7 +629,7 @@ Hvis du har en database med brukere:
 
 ---
 
-## Flytdiagram
+### Flytdiagram
 
 ```python
 admin_panel = admin_required(admin_panel)  # admin_panel blir decorated
@@ -637,3 +644,93 @@ admin_panel(5)  # faktisk: decorated(5)
 - `f` = originalfunksjonen
 - `decorated` returnerer resultatet fra `f`, men er fortsatt en egen funksjon
 - `@wraps(f)` sørger for at navnet og docstringen til `f` beholdes
+
+---
+
+## Login-rute
+
+```python
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        user = User.query.filter_by(username=request.form['username']).first()
+        if user and check_password_hash(user.password_hash, request.form['password']):
+            login_user(user)
+            return redirect(url_for('index'))
+        flash('Feil brukernavn eller passord', 'error')
+    return render_template('login.html')
+```
+
+`@app.route('/login', methods=['GET', 'POST'])` lager en rute `/login` som kan håndtere både GET (vis siden) og POST (send data fra skjema. I dette tilfellet når du trykker "logg inn"-knappen).
+
+`if request.method == 'POST':` sjekker om brukeren har trykket på "logg inn" og sendt skjema.
+
+`user = User.query.filter_by(username=request.form['username']).first()` – variabelen `user` blir resultatet av et søk i `User`-tabellen, der vi filtrerer på kolonnen `username` og finner brukeren som har samme brukernavn som det som ble skrevet i HTML-skjemaet. Deretter tar vi det første resultatet som matcher.
+
+`if user and check_password_hash(user.password_hash, request.form['password']):` sjekker 2 ting: om brukernavnet finnes i databasen, og om passordet du skrev matcher brukernavnet.
+
+Hvis det er riktig logges du inn med `login_user(user)` og blir redirecta til `/index`. Ellers vil `flash` sende en melding tilbake til siden. `flash` er en innebygd Flask-funksjon som lagrer en midlertidig melding i session, slik at den kan vises i HTML-templaten én gang for eksempel *"Feil brukernavn eller passord"*.
+
+Når det gjelder `return` så er det en `return` per funksjonskall. Så det er enten `return render_template('index.html')` eller `return render_template('login.html')`. Ikke begge.
+
+### Flyt
+
+```
+Bruker åpner /login (GET)
+        ↓
+Vis login-skjema
+        ↓
+Bruker fyller ut skjema → trykker login (POST)
+        ↓
+Hent username fra skjema
+        ↓
+Søk i databasen etter brukeren
+        ↓
+Fant bruker?
+   ┌───Ja───┐
+   │         ↓
+   │   Sjekk passord
+   │         ↓
+   │   Passord riktig?
+   │    ┌────Ja────┐
+   │    ↓           ↓
+   │  login_user()  redirect til index
+   │
+   └──Nei──→ flash('Feil brukernavn eller passord')
+                    ↓
+             return login.html
+```
+---
+
+```python
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        if User.query.filter_by(username=username).first():
+            flash('Brukernavnet er allerede tatt', 'error')
+            return redirect(url_for('register'))
+        db.session.add(User(
+            username=username,
+            password_hash=generate_password_hash(request.form['password']),
+            is_admin=False
+        ))
+        db.session.commit()
+        login_user(User.query.filter_by(username=username).first())
+        return redirect(url_for('index'))
+    return render_template('register.html')
+```
+
+Her er det bare masse kode som vi hat gått gjennom tidligere, men det jeg kan si er at `if method == 'POST'.` Så kjøres hele iff løkka inni, men ellers hopper den helt til `return render_template('register.html')` fordi det er en GET method.
+
+---
+```python
+@app.route('/logg-ut')
+@login_required
+def logg_ut():
+    logout_user()
+    return redirect(url_for('login'))
+```
+Den her er også ganskje rett fram. Den definerer ruten logg-ut. Sier at du må være logget inn for å logge ut. Logger ut brukeren også redirecter tilbake til login.html
+
+---

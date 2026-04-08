@@ -114,5 +114,37 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        user = User.query.filter_by(username=request.form['username']).first()
+        if user and check_password_hash(user.password_hash, request.form['password']):
+            login_user(user)
+            return redirect(url_for('index'))
+        flash('Feil brukernavn eller passord', 'error')
+    return render_template('login.html')
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form['username']
+        if User.query.filter_by(username=username).first():
+            flash('Brukernavnet er allerede tatt', 'error')
+            return redirect(url_for('register'))
+        db.session.add(User(
+            username=username,
+            password_hash=generate_password_hash(request.form['password']),
+            is_admin=False
+        ))
+        db.session.commit()
+        login_user(User.query.filter_by(username=username).first())
+        return redirect(url_for('index'))
+    return render_template('register.html')
+
+@app.route('/logg-ut')
+@login_required
+def logg_ut():
+    logout_user()
+    return redirect(url_for('login'))
 
 
