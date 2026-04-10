@@ -777,7 +777,12 @@ def index():
 
 Denne koden definerer default ruten for index. `sections = Section.query.all()` sier at sections variabelen skal lagre samme resultat som alle sectionene som blir hentet fra tabellen Section. Dette blir tilslutt sendt til HTML.
 
-HTML får `sections=sections`, så i HTML kan du gjøre: `for section in sections`
+`sections = Section.query.all()` sier at variabelen sections skal være alle items fra tabellen Section.
+
+`return render_template('index.html', sections=sections)` Sier at den skal rerturnere templaten index og at det skal lages an ny variabel kalt sections som skal være det samme som sections variabelen vi lagde over.
+Fordi den ene sections er i python og vi trenger en section svariabel i html med samme verdier. 
+
+HTML får `sections=sections`, så i HTML kan du gjøre: `for section in sections` 
 
 ```html
 <h1>Sections</h1>
@@ -806,11 +811,12 @@ def section(section_id):
 
 Denne koden definerer hva som skjer når du går inn på en section.
 
-`@app.route('/section/<int:section_id>')` definerer ruten i form av en variabel som er hentet fra URL-en du går til. `<int:section_id>` er den variabelen. Så URL-en blir `https://localhost:5000/section/5`. URL-en kommer fra HTML:
+`@app.route('/section/<int:section_id>')` definerer ruten i form av en variabel som er hentet fra URL-en du går til. `<int:section_id>` er den variabelen. Så URL-en blir `https://localhost:5000/section/5`. URL-en kommer fra HTML, Som får section_id fra databasen.
 
 ```html
 <a href="{{ url_for('section', section_id=section.id) }}">
 ```
+Denne html koden får section.id fra databasen når du skrev `sections=sections` tidligere i default ruten. 
 
 Det som skjer er at brukeren trykker på en link, men før det vises i nettleser så har Jinja allerede gjort jobben.
 
@@ -822,6 +828,13 @@ Etter dette gjør du `seksjon = Section.query.get_or_404(5)` som er at variabele
 
 URL sin `section_id` kommer ikke automatisk fra databasen, MEN i praksis bruker du ofte samme verdi som finnes i databasen.
 
+Koden sier dette:
+```html
+{% for section in sections %}
+  <a href="/section/{{ section.id }}">
+```
+For hver section i sections. Skal html lage en link for /section/ ruten med /section_id.
+
 Flask gjør **ikke** dette:
 - Flask går ikke inn i databasen og henter ID-er
 - Flask vet ingenting om Section-tabellen din
@@ -830,8 +843,15 @@ Flask gjør **dette**:
 
 Når noen går til `/section/5`, sier Flask bare `section_id = 5`. Koblingen til databasen skjer når du sier `seksjon = Section.query.get_or_404(section_id)`.
 
-```
+``` 
 DATABASE gir ID → HTML lager link → URL sender ID → Flask bruker ID → DATABASE henter igjen
+1. DATABASE (har data)
+2. Python backend lager HTML med url_for
+3. HTML sendes til nettleser
+4. bruker klikker link
+5. request går til Flask
+6. Flask bruker ID
+7. Flask spør database
 
 [ DATABASE ]
    id = 5
