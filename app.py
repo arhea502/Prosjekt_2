@@ -147,4 +147,66 @@ def logg_ut():
     logout_user()
     return redirect(url_for('login'))
 
+@app.route('/')
+@login_required
+def index():
+    sections = Section.query.all()
+    return render_template('index.html', sections=sections)
 
+@app.route('/section/<int:section_id>')
+@login_required
+def section(section_id):
+    seksjon = Section.query.get_or_404(section_id)
+    return render_template('section.html', section=seksjon)
+
+@app.route('/topic/<int:topic_id>')
+@login_required
+def topic(topic_id):
+    tema = Topic.query.get_or_404(topic_id)
+
+    # Registrer første besøk
+    if not TopicVisit.query.filter_by(user_id=current_user.id, topic_id=topic_id).first():
+        db.session.add(TopicVisit(user_id=current_user.id, topic_id=topic_id))
+        db.session.commit()
+
+    # Sett av hvilke elementer brukeren har besvart
+    answered_ids = {p.element_id for p in
+                    Progress.query.filter_by(user_id=current_user.id).all()}
+    open_answers = {a.element_id: a.answer for a in
+                    OpenAnswer.query.filter_by(user_id=current_user.id).all()}
+
+    # Konverter markdown til HTML
+    elements_rendered = []
+    for el in tema.elements:
+        rendered = el.content
+        if el.type == 'markdown':
+            rendered = md.markdown(el.content or '',
+                                   extensions=['fenced_code', 'tables'])
+        elements_rendered.append((el, rendered))
+
+    return render_template('topic.html',
+        topic=tema,
+        elements_rendered=elements_rendered,
+        answered_ids=answered_ids,
+        open_answers=open_answers)
+
+@app.route('/profil')
+@login_required
+def profile():
+    uid      = current_user.id
+    answered = Progress.query.filter_by(user_id=uid).count()
+    correct  = Progress.query.filter_by(user_id=uid, correct=True).count()
+    visited  = TopicVisit.query.filter_by(user_id=uid).count()
+    topic_stats = []
+    for tema in Topic.query.all():
+        total = len(tema.elements)
+        if total == 0: continue
+        done = Progress.query.filter_by(user_id=uid).join(LearningElement).filter(
+            LearningElement.topic_id == tema.id).count()
+        topic_stats.append({
+            'topic': tema, 'done': done, 'total': total,
+            'percent': int(done / total * 100)
+        })
+    return render_template('profile.html',
+        answered=answered, correct=correct,
+        visited=visited, topic_stats=topic_stats)

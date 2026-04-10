@@ -18,8 +18,13 @@ Dokumentasjon av Flask-appens konfigurasjon, innloggingssystem og databasemodell
   - [TopicVisit](#topicvisit)
   - [Total databasestruktur](#total-databasestruktur)
 - [Admin-oppsett](#admin-oppsett)
-- [@admin_required Decorator](#admin_required-decorator)
-- [Login-rute](#login-rute)
+- [@admin\_required Decorator](#admin_required-decorator)
+- [Ruter](#ruter)
+  - [Login](#login-rute)
+  - [Register](#register-rute)
+  - [Logg ut](#logg-ut-rute)
+  - [Index](#index-rute)
+  - [Section](#section-rute)
 
 ---
 
@@ -40,6 +45,7 @@ app.config['SECRET_KEY'] = '108158379'
 ```
 
 Brukes til å signere session cookies. Innlogging fungerer ikke uten denne nøkkelen.
+Uten en `SECRET_KEY` kan brukere i teorien manipulere session-data.
 
 > **Session cookies** er midlertidige filer som brukes av nettsider for å huske informasjon om deg mens du navigerer fra side til side i løpet av ett enkelt besøk. De lagrer informasjon om brukeren (for eksempel innloggingsstatus) mellom forespørsler til serveren.
 
@@ -51,6 +57,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 
 Forteller hvilken database Flask bruker. Her brukes SQLite, og databasen lagres i filen `database.db`. De tre skråstrekene `///` betyr at stien er relativ til prosjektmappen.
 
+Dette kalles en URI (Uniform Resource Identifier), som er en standard måte å beskrive hvor en ressurs (her: database) befinner seg og hvordan man kobler til den.
+
 ---
 
 ```python
@@ -58,6 +66,15 @@ db = SQLAlchemy(app)
 ```
 
 Kobler Flask til databasen, slik at databasen blir tilgjengelig overalt i appen.
+
+SQLAlchemy er en `ORM (Object Relational Mapper)`, som betyr at du kan jobbe med databasen ved å bruke Python-klasser i stedet for rå SQL.
+
+Eksempel:
+
+```python
+User.query.all()       # ORM
+SELECT * FROM user;    # Rå SQL
+```
 
 ---
 
@@ -647,7 +664,11 @@ admin_panel(5)  # faktisk: decorated(5)
 
 ---
 
-## Login-rute
+## Ruter
+
+---
+
+### Login-rute
 
 ```python
 @app.route('/login', methods=['GET', 'POST'])
@@ -673,7 +694,7 @@ Hvis det er riktig logges du inn med `login_user(user)` og blir redirecta til `/
 
 Når det gjelder `return` så er det en `return` per funksjonskall. Så det er enten `return render_template('index.html')` eller `return render_template('login.html')`. Ikke begge.
 
-### Flyt
+#### Flyt
 
 ```
 Bruker åpner /login (GET)
@@ -687,20 +708,25 @@ Hent username fra skjema
 Søk i databasen etter brukeren
         ↓
 Fant bruker?
-   ┌───Ja───┐
-   │         ↓
-   │   Sjekk passord
-   │         ↓
-   │   Passord riktig?
-   │    ┌────Ja────┐
-   │    ↓           ↓
-   │  login_user()  redirect til index
-   │
-   └──Nei──→ flash('Feil brukernavn eller passord')
-                    ↓
-             return login.html
+   ┌────Ja────┐
+   ↓           
+Sjekk passord
+   ↓
+Passord riktig?
+   ┌────Ja────────────────────────────┐
+   ↓                                  ↓
+login_user()              →   redirect til index
+
+   Nei (feil bruker eller passord)
+        ↓
+flash('Feil brukernavn eller passord')
+        ↓
+return login.html
 ```
+
 ---
+
+### Register-rute
 
 ```python
 @app.route('/register', methods=['GET', 'POST'])
@@ -721,9 +747,12 @@ def register():
     return render_template('register.html')
 ```
 
-Her er det bare masse kode som vi hat gått gjennom tidligere, men det jeg kan si er at `if method == 'POST'.` Så kjøres hele iff løkka inni, men ellers hopper den helt til `return render_template('register.html')` fordi det er en GET method.
+Her er det bare masse kode som vi har gått gjennom tidligere, men det jeg kan si er at `if request.method == 'POST'` så kjøres hele if-setningen inni, men ellers hopper den helt til `return render_template('register.html')` fordi det er en GET method.
 
 ---
+
+### Logg ut-rute
+
 ```python
 @app.route('/logg-ut')
 @login_required
@@ -731,6 +760,91 @@ def logg_ut():
     logout_user()
     return redirect(url_for('login'))
 ```
-Den her er også ganskje rett fram. Den definerer ruten logg-ut. Sier at du må være logget inn for å logge ut. Logger ut brukeren også redirecter tilbake til login.html
+
+Den her er også ganske rett fram. Den definerer ruten logg-ut. Sier at du må være logget inn for å logge ut. Logger ut brukeren også redirecter tilbake til login.html
 
 ---
+
+### Index-rute
+
+```python
+@app.route('/')
+@login_required
+def index():
+    sections = Section.query.all()
+    return render_template('index.html', sections=sections)
+```
+
+Denne koden definerer default ruten for index. `sections = Section.query.all()` sier at sections variabelen skal lagre samme resultat som alle sectionene som blir hentet fra tabellen Section. Dette blir tilslutt sendt til HTML.
+
+HTML får `sections=sections`, så i HTML kan du gjøre: `for section in sections`
+
+```html
+<h1>Sections</h1>
+
+<ul>
+  {% for section in sections %}
+    <li>
+      <h2>{{ section.title }}</h2>
+      <p>{{ section.content }}</p>
+    </li>
+  {% endfor %}
+</ul>
+```
+
+---
+
+### Section-rute
+
+```python
+@app.route('/section/<int:section_id>')
+@login_required
+def section(section_id):
+    seksjon = Section.query.get_or_404(section_id)
+    return render_template('section.html', section=seksjon)
+```
+
+Denne koden definerer hva som skjer når du går inn på en section.
+
+`@app.route('/section/<int:section_id>')` definerer ruten i form av en variabel som er hentet fra URL-en du går til. `<int:section_id>` er den variabelen. Så URL-en blir `https://localhost:5000/section/5`. URL-en kommer fra HTML:
+
+```html
+<a href="{{ url_for('section', section_id=section.id) }}">
+```
+
+Det som skjer er at brukeren trykker på en link, men før det vises i nettleser så har Jinja allerede gjort jobben.
+
+Jinja sier `url_for('section', section_id=5)`, og Flask ser `"section"` og `section_id=5` og matcher `@app.route('/section/<int:section_id>')` som da gir resultatet `/section/5`.
+
+Flask gjør da `section_id = 5` automatisk og kjører `section(5)`.
+
+Etter dette gjør du `seksjon = Section.query.get_or_404(5)` som er at variabelen seksjon skal være alt fra Section databasen med id 5, ellers skal den kjøre error 404.
+
+URL sin `section_id` kommer ikke automatisk fra databasen, MEN i praksis bruker du ofte samme verdi som finnes i databasen.
+
+Flask gjør **ikke** dette:
+- Flask går ikke inn i databasen og henter ID-er
+- Flask vet ingenting om Section-tabellen din
+
+Flask gjør **dette**:
+
+Når noen går til `/section/5`, sier Flask bare `section_id = 5`. Koblingen til databasen skjer når du sier `seksjon = Section.query.get_or_404(section_id)`.
+
+```
+DATABASE gir ID → HTML lager link → URL sender ID → Flask bruker ID → DATABASE henter igjen
+
+[ DATABASE ]
+   id = 5
+     ↓
+[ HTML ]
+   url_for(..., 5)
+     ↓
+[ URL ]
+   /section/5
+     ↓
+[ FLASK ]
+   section_id = 5
+     ↓
+[ DATABASE ]
+   SELECT id=5
+```
