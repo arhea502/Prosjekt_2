@@ -32,6 +32,8 @@ Dokumentasjon av Flask-appens konfigurasjon, innloggingssystem og databasemodell
 
 > Setter opp Flask-appen, databasetilkobling og hemmelig nøkkel for session-håndtering.
 
+### `Flask(__name__)`
+
 ```python
 app = Flask(__name__)
 ```
@@ -40,16 +42,19 @@ Lager Flask-appen. `__name__` brukes til å finne filens modulstil, og gjør at 
 
 ---
 
+### `SECRET_KEY`
+
 ```python
 app.config['SECRET_KEY'] = '108158379'
 ```
 
-Brukes til å signere session cookies. Innlogging fungerer ikke uten denne nøkkelen.
-Uten en `SECRET_KEY` kan brukere i teorien manipulere session-data.
+Brukes til å signere session cookies. Innlogging fungerer ikke uten denne nøkkelen. Uten en `SECRET_KEY` kan brukere i teorien manipulere session-data.
 
 > **Session cookies** er midlertidige filer som brukes av nettsider for å huske informasjon om deg mens du navigerer fra side til side i løpet av ett enkelt besøk. De lagrer informasjon om brukeren (for eksempel innloggingsstatus) mellom forespørsler til serveren.
 
 ---
+
+### `SQLALCHEMY_DATABASE_URI`
 
 ```python
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
@@ -57,9 +62,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 
 Forteller hvilken database Flask bruker. Her brukes SQLite, og databasen lagres i filen `database.db`. De tre skråstrekene `///` betyr at stien er relativ til prosjektmappen.
 
-Dette kalles en URI (Uniform Resource Identifier), som er en standard måte å beskrive hvor en ressurs (her: database) befinner seg og hvordan man kobler til den.
+Dette kalles en URI (Uniform Resource Identifier) – en standard måte å beskrive hvor en ressurs (her: database) befinner seg og hvordan man kobler til den.
 
 ---
+
+### `SQLAlchemy(app)`
 
 ```python
 db = SQLAlchemy(app)
@@ -67,13 +74,11 @@ db = SQLAlchemy(app)
 
 Kobler Flask til databasen, slik at databasen blir tilgjengelig overalt i appen.
 
-SQLAlchemy er en `ORM (Object Relational Mapper)`, som betyr at du kan jobbe med databasen ved å bruke Python-klasser i stedet for rå SQL.
-
-Eksempel:
+SQLAlchemy er en **ORM (Object Relational Mapper)**, som betyr at du kan jobbe med databasen ved å bruke Python-klasser i stedet for rå SQL.
 
 ```python
-User.query.all()       # ORM
-SELECT * FROM user;    # Rå SQL
+User.query.all()    # ORM
+SELECT * FROM user; # Rå SQL
 ```
 
 ---
@@ -81,6 +86,8 @@ SELECT * FROM user;    # Rå SQL
 ## Flask-Login
 
 > Setter opp innloggingssystemet og definerer hvordan Flask henter og gjenkjenner innloggede brukere.
+
+### `LoginManager(app)`
 
 ```python
 login_manager = LoginManager(app)
@@ -90,6 +97,8 @@ Kobler Flask til login-systemet. Dette gjør at `current_user` blir tilgjengelig
 
 ---
 
+### `login_view`
+
 ```python
 login_manager.login_view = 'login'
 ```
@@ -97,6 +106,8 @@ login_manager.login_view = 'login'
 Hvis noen prøver å gå til en beskyttet side uten å være logget inn, vil de automatisk bli sendt til ruten `login`.
 
 ---
+
+### `user_loader`
 
 ```python
 @login_manager.user_loader
@@ -240,7 +251,7 @@ Kolonnen `type` sier noe om hvilken type læringselement det er. Dataene tolkes 
 |---|---|---|
 | `id` | `db.Integer` | Alle |
 | `topic_id` | `db.Integer` (FK) | Alle |
-| `type` | `db.String(20)` | Alle, styrer tolkningen |
+| `type` | `db.String(20)` | Alle – styrer tolkningen |
 | `content` | `db.Text` | `text` |
 | `question` | `db.Text` | `quiz` |
 | `option_a` – `option_d` | `db.String(200)` | `quiz` |
@@ -262,8 +273,6 @@ LearningElement(
 |------|---------|----------|----------|
 | text | "Dette er..." | NULL | NULL |
 
----
-
 **`type = "quiz"`** – flervalgsoppgave:
 
 ```python
@@ -278,8 +287,6 @@ LearningElement(
 | type | content | question | option_a | option_b |
 |------|---------|----------|----------|----------|
 | quiz | NULL | "Hva er 2+2?" | "3" | "4" |
-
----
 
 Den ferdige strukturen ser slik ut:
 
@@ -379,11 +386,11 @@ Dette er en enkel kode som sier hvilke topics brukeren har besøkt. Det gjør de
 
 ---
 
-## Total databasestruktur
+### Total databasestruktur
 
 > Oversikt over alle tabeller og hvordan de henger sammen via relasjoner og fremmednøkler.
 
-### Innholdshierarki
+#### Innholdshierarki
 
 ```
 INNHOLDSHIERARKI
@@ -404,7 +411,7 @@ INNHOLDSHIERARKI
                       +-----------+         +-------------------+
 ```
 
-### Brukersporing
+#### Brukersporing
 
 ```
 BRUKERSPORING
@@ -442,7 +449,7 @@ BRUKERSPORING
         +-------------------+         +-----------+
 ```
 
-### Nøkkelforklaringer
+#### Nøkkelforklaringer
 
 ```
 NØKKELFORKLARINGER
@@ -547,30 +554,39 @@ Da kan den kalle originalfunksjonen med:
 f(*args, **kwargs)  # => admin_panel(5, action='delete')
 ```
 
-**Hvorfor det er viktig:**
-
-Flask sender parameterne fra URL eller form til funksjonen. Dekoratoren må videreformidle disse til originalfunksjonen. Uten `*args` og `**kwargs` måtte du hardkode hvilke argumenter dekoratoren tar imot, noe som gjør den lite fleksibel.
-
-Uten `*args` og `**kwargs`:
+**Hvorfor det er viktig:** Flask sender parameterne fra URL eller form til funksjonen. Dekoratoren må videreformidle disse til originalfunksjonen. Uten `*args` og `**kwargs` måtte du hardkode hvilke argumenter dekoratoren tar imot, noe som gjør den lite fleksibel.
 
 ```python
+# Uten *args og **kwargs:
 def decorated(id):  # Hva om admin_panel plutselig trenger 2 argumenter?
     ...
+# → Dekoratoren feiler hvis funksjonen endrer signatur
 ```
 
-Da vil dekoratoren feile hvis funksjonen du dekorerer endrer signatur.
-
 **Kort sagt** – `*args` og `**kwargs` gjør at dekoratoren:
-
 1. Kan pakke inn hvilken som helst funksjon, uansett hvilke argumenter den tar.
 2. Kan sende alle argumenter videre til originalfunksjonen.
 3. Holder koden fleksibel og gjenbrukbar.
 
 ---
 
-### Visualisering
+### Kobling til databasen
 
-Tenk at du har dette:
+Hvis du har en database med brukere:
+
+| Id | Username | Password | IsAdmin |
+|----|----------|----------|---------|
+| 1  | admin    | hsh      | True    |
+| 2  | ola      | xyz      | False   |
+
+- Bruker med `Id=1` går til `/admin/1` → `current_user.is_admin = True` → kjører `admin_panel(1)`
+- Bruker med `Id=2` går til `/admin/2` → `current_user.is_admin = False` → **403 Forbidden**
+
+> **Viktig:** `*args` og `**kwargs` inneholder input fra Flask, ikke `current_user`. Admin-sjekken bruker `current_user` for å avgjøre privilegier, uavhengig av hva som sendes i URL-en.
+
+---
+
+### Visualisering
 
 ```python
 @app.route("/admin/<int:id>")
@@ -588,73 +604,16 @@ admin_panel = admin_required(admin_panel)
 - `f` blir satt til originalfunksjonen (`admin_panel`)
 - Dekoratoren lager `decorated`, som nå er funksjonen Flask faktisk kaller når noen besøker `/admin/<id>`
 
-#### Når siden kalles
-
-URL:
+**Når siden kalles – URL `/admin/5`:**
 
 ```
-/admin/5
-```
-
-Flask gjør:
-
-```python
-decorated(5)
-```
-
-Da er:
-
-```python
-args = (5,)
-kwargs = {}
-```
+Flask gjør:  decorated(5)
+             args = (5,)  |  kwargs = {}
 
 Inni dekoratoren:
-
-```python
-return f(*args, **kwargs)
-```
-
-Blir:
-
-```python
-admin_panel(5)
-```
-
-- `decorated` kjører først sjekken om brukeren er innlogget og admin
-- Deretter kjører den originalfunksjonen med samme input som Flask sendte (`id=5` i dette tilfellet)
-- `*args` pakker ut posisjonelle argumenter, og `**kwargs` pakker ut navngitte argumenter
-
----
-
-### Kobling til databasen
-
-Hvis du har en database med brukere:
-
-| Id | Username | Password | IsAdmin |
-|----|----------|----------|---------|
-| 1  | admin    | hsh      | True    |
-| 2  | ola      | xyz      | False   |
-
-- Bruker med `Id=1` går til `/admin/1`
-  - Flask kaller `decorated(1)`
-  - `current_user.is_admin` = `True` → kjører `admin_panel(1)`
-- Bruker med `Id=2` går til `/admin/2`
-  - `current_user.is_admin` = `False` → 403 Forbidden
-
-> **Viktig:** `*args` og `**kwargs` inneholder input fra Flask, ikke `current_user`. Admin-sjekken bruker `current_user` for å avgjøre privilegier, uavhengig av hva som sendes i URL-en.
-
----
-
-### Flytdiagram
-
-```python
-admin_panel = admin_required(admin_panel)  # admin_panel blir decorated
-
-admin_panel(5)  # faktisk: decorated(5)
-                # 1. sjekk innlogging
-                # 2. sjekk admin
-                # 3. hvis OK → f(5) = original admin_panel(5)
+    1. Sjekk innlogging     (@login_required)
+    2. Sjekk admin          (current_user.is_admin)
+    3. Hvis OK → f(5)  =  admin_panel(5)
 ```
 
 - `decorated` = wrapper-funksjon
@@ -682,7 +641,7 @@ def login():
     return render_template('login.html')
 ```
 
-`@app.route('/login', methods=['GET', 'POST'])` lager en rute `/login` som kan håndtere både GET (vis siden) og POST (send data fra skjema. I dette tilfellet når du trykker "logg inn"-knappen).
+`@app.route('/login', methods=['GET', 'POST'])` lager en rute `/login` som kan håndtere både GET (vis siden) og POST (send data fra skjema – i dette tilfellet når du trykker "logg inn"-knappen).
 
 `if request.method == 'POST':` sjekker om brukeren har trykket på "logg inn" og sendt skjema.
 
@@ -690,7 +649,7 @@ def login():
 
 `if user and check_password_hash(user.password_hash, request.form['password']):` sjekker 2 ting: om brukernavnet finnes i databasen, og om passordet du skrev matcher brukernavnet.
 
-Hvis det er riktig logges du inn med `login_user(user)` og blir redirecta til `/index`. Ellers vil `flash` sende en melding tilbake til siden. `flash` er en innebygd Flask-funksjon som lagrer en midlertidig melding i session, slik at den kan vises i HTML-templaten én gang for eksempel *"Feil brukernavn eller passord"*.
+Hvis det er riktig logges du inn med `login_user(user)` og blir redirecta til `/index`. Ellers vil `flash` sende en melding tilbake til siden. `flash` er en innebygd Flask-funksjon som lagrer en midlertidig melding i session, slik at den kan vises i HTML-templaten én gang – for eksempel *"Feil brukernavn eller passord"*.
 
 Når det gjelder `return` så er det en `return` per funksjonskall. Så det er enten `return render_template('index.html')` eller `return render_template('login.html')`. Ikke begge.
 
@@ -708,20 +667,12 @@ Hent username fra skjema
 Søk i databasen etter brukeren
         ↓
 Fant bruker?
-   ┌────Ja────┐
-   ↓           
+   ↓ Ja
 Sjekk passord
-   ↓
-Passord riktig?
-   ┌────Ja────────────────────────────┐
-   ↓                                  ↓
-login_user()              →   redirect til index
-
-   Nei (feil bruker eller passord)
-        ↓
-flash('Feil brukernavn eller passord')
-        ↓
-return login.html
+   ↓ Riktig                         ↓ Feil (feil bruker eller passord)
+login_user()                  flash('Feil brukernavn eller passord')
+redirect til index                   ↓
+                              return login.html
 ```
 
 ---
@@ -761,7 +712,7 @@ def logg_ut():
     return redirect(url_for('login'))
 ```
 
-Den her er også ganske rett fram. Den definerer ruten logg-ut. Sier at du må være logget inn for å logge ut. Logger ut brukeren også redirecter tilbake til login.html
+Den her er også ganske rett fram. Den definerer ruten logg-ut. Sier at du må være logget inn for å logge ut. Logger ut brukeren også redirecter tilbake til `login.html`.
 
 ---
 
@@ -775,14 +726,11 @@ def index():
     return render_template('index.html', sections=sections)
 ```
 
-Denne koden definerer default ruten for index. `sections = Section.query.all()` sier at sections variabelen skal lagre samme resultat som alle sectionene som blir hentet fra tabellen Section. Dette blir tilslutt sendt til HTML.
+Denne koden definerer default ruten for index. `sections = Section.query.all()` sier at sections-variabelen skal lagre samme resultat som alle sectionene som blir hentet fra tabellen Section. Dette blir tilslutt sendt til HTML.
 
-`sections = Section.query.all()` sier at variabelen sections skal være alle items fra tabellen Section.
+`return render_template('index.html', sections=sections)` sier at den skal returnere templaten index og at det skal lages en ny variabel kalt `sections` som skal være det samme som sections-variabelen vi lagde over. Fordi den ene `sections` er i Python og vi trenger en `sections`-variabel i HTML med samme verdier.
 
-`return render_template('index.html', sections=sections)` Sier at den skal rerturnere templaten index og at det skal lages an ny variabel kalt sections som skal være det samme som sections variabelen vi lagde over.
-Fordi den ene sections er i python og vi trenger en section svariabel i html med samme verdier. 
-
-HTML får `sections=sections`, så i HTML kan du gjøre: `for section in sections` 
+HTML får `sections=sections`, så i HTML kan du gjøre:
 
 ```html
 <h1>Sections</h1>
@@ -811,111 +759,100 @@ def section(section_id):
 
 Denne koden definerer hva som skjer når du går inn på en section.
 
-`@app.route('/section/<int:section_id>')` definerer ruten i form av en variabel som er hentet fra URL-en du går til. `<int:section_id>` er den variabelen. Så URL-en blir `https://localhost:5000/section/5`. URL-en kommer fra HTML, Som får section_id fra databasen.
+`@app.route('/section/<int:section_id>')` definerer ruten i form av en variabel som er hentet fra URL-en du går til. `<int:section_id>` er den variabelen. Så URL-en blir `https://localhost:5000/section/5`. URL-en kommer fra HTML, som får `section_id` fra databasen:
 
 ```html
 <a href="{{ url_for('section', section_id=section.id) }}">
 ```
-Denne html koden får section.id fra databasen når du skrev `sections=sections` tidligere i default ruten. 
 
-Det som skjer er at brukeren trykker på en link, men før det vises i nettleser så har Jinja allerede gjort jobben.
+Denne HTML-koden får `section.id` fra databasen når du skrev `sections=sections` tidligere i default ruten.
 
-Jinja sier `url_for('section', section_id=5)`, og Flask ser `"section"` og `section_id=5` og matcher `@app.route('/section/<int:section_id>')` som da gir resultatet `/section/5`.
+Det som skjer er at brukeren trykker på en link, men før det vises i nettleser så har Jinja allerede gjort jobben. Jinja sier `url_for('section', section_id=5)`, og Flask ser `"section"` og `section_id=5` og matcher `@app.route('/section/<int:section_id>')` som da gir resultatet `/section/5`.
 
 Flask gjør da `section_id = 5` automatisk og kjører `section(5)`.
 
-Etter dette gjør du `seksjon = Section.query.get_or_404(5)` som er at variabelen seksjon skal være alt fra Section databasen med id 5, ellers skal den kjøre error 404.
+Etter dette gjør du `seksjon = Section.query.get_or_404(5)` – variabelen `seksjon` skal være alt fra Section-databasen med id 5, ellers skal den kjøre error 404.
 
-URL sin `section_id` kommer ikke automatisk fra databasen, MEN i praksis bruker du ofte samme verdi som finnes i databasen.
-
-Koden sier dette:
-```html
-{% for section in sections %}
-  <a href="/section/{{ section.id }}">
-```
-For hver section i sections. Skal html lage en link for /section/ ruten med /section_id.
-
-Flask gjør **ikke** dette:
+**Flask gjør IKKE dette:**
 - Flask går ikke inn i databasen og henter ID-er
 - Flask vet ingenting om Section-tabellen din
 
-Flask gjør **dette**:
+**Flask gjør DETTE:** Når noen går til `/section/5`, sier Flask bare `section_id = 5`. Koblingen til databasen skjer når du sier `seksjon = Section.query.get_or_404(section_id)`.
 
-Når noen går til `/section/5`, sier Flask bare `section_id = 5`. Koblingen til databasen skjer når du sier `seksjon = Section.query.get_or_404(section_id)`.
-
-``` 
-DATABASE gir ID → HTML lager link → URL sender ID → Flask bruker ID → DATABASE henter igjen
-1. DATABASE (har data)
-2. Python backend lager HTML med url_for
-3. HTML sendes til nettleser
-4. bruker klikker link
-5. request går til Flask
-6. Flask bruker ID
-7. Flask spør database
-
-[ DATABASE ]
-   id = 5
-     ↓
-[ HTML ]
-   url_for(..., 5)
-     ↓
-[ URL ]
-   /section/5
-     ↓
-[ FLASK ]
-   section_id = 5
-     ↓
-[ DATABASE ]
-   SELECT id=5
 ```
+DATABASE gir ID → HTML lager link → URL sender ID → Flask bruker ID → DATABASE henter igjen
+
+[ DATABASE ]        [ HTML ]           [ URL ]         [ FLASK ]       [ DATABASE ]
+  id = 5       →  url_for(..., 5)  →  /section/5  →  section_id=5  →  SELECT id=5
+```
+
 ---
+
+### Topic-rute
+
 ```python
 @app.route('/topic/<int:topic_id>')
 @login_required
 def topic(topic_id):
     tema = Topic.query.get_or_404(topic_id)
 ```
-Denne koden gjør det samme som section koden. Den får topic_id fra noe som `<a href="{{ url_for('topic', topic_id=topic.id) }}">` også henter den topic fra databasen med den id-en som blir gitt. 
+
+Denne koden gjør det samme som section-koden. Den får `topic_id` fra noe som `<a href="{{ url_for('topic', topic_id=topic.id) }}">`, også henter den topic fra databasen med den id-en som blir gitt.
+
 ---
+
+### Set comprehension – `answered_ids`
 
 ```python
 answered_ids = {p.element_id for p in
                     Progress.query.filter_by(user_id=current_user.id).all()}
 ```
-Den her koden gjør at variabelen answered_ids skal hente frem noe for hver ting `(p)` i en liste.
-Altså den henter `p.elemend.id` per element den finner i listen.
 
-Der er nesten altid:
-"Hva vil du hente ut" først, og
-"hva du looper over" etterpå
-Derfor er det p.elementid først også p etter
+Den her koden gjør at variabelen `answered_ids` skal hente frem noe for hver ting `(p)` i en liste. Altså den henter `p.element_id` per element den finner i listen.
 
-tenk at du har dette
+Det er nesten alltid:
+- "Hva vil du hente ut" **først**
+- "hva du looper over" **etterpå**
+
+Derfor er det `p.element_id` først, også `p` etter.
+
+Tenk at du har dette:
+
 ```python
 progress_list = [
     Progress(element_id=5),
     Progress(element_id=6),
     Progress(element_id=9)
 ]
-
-Da betyr `for p in progress_list:` at du skal hente en og en ting fra den listen.
-
-Så `p.element_id` betyr for hver ting den finner, skal den bare hente element_id.
-
-Tilslutt står det `Progress.query.filter_by(user_id=current_user.id).all()}` som betyr at det den henter ut skal tilhøre current user som er logget inn. Det gjør den ved at den filtrerer søket sit etter user_id, imens den søker etter element_id
 ```
+
+Da betyr `for p in progress_list:` at du skal hente en og en ting fra den listen. Så `p.element_id` betyr for hver ting den finner, skal den bare hente `element_id`.
+
+Tilslutt står det `Progress.query.filter_by(user_id=current_user.id).all()` som betyr at det den henter ut skal tilhøre current user som er logget inn. Det gjør den ved at den filtrerer søket sitt etter `user_id`, imens den søker etter `element_id`.
+
+Resultat: `{5, 6, 9}`
+
 ---
 
+### Dict comprehension – `open_answers`
+
 ```python
-  open_answers = {a.element_id: a.answer for a in
+open_answers = {a.element_id: a.answer for a in
                     OpenAnswer.query.filter_by(user_id=current_user.id).all()}
 ```
-Den her koden er litt anderledes, selv om den ser helt lik ut. Forskjellen er at den her har en key og value i loopen. Ved at det er en : mellom element_id og answer gjør at element_id er key og answer er value.
-Så resultatet blir noe som 
+
+Den her koden er litt anderledes, selv om den ser helt lik ut. Forskjellen er at den her har en key og value i loopen. Ved at det er en `:` mellom `element_id` og `answer` gjør at `element_id` er key og `answer` er value.
+
+Så resultatet blir:
+
 ```python
 {
     5: "Svar på oppgave 5",
     6: "Svar på oppgave 6",
     9: "Svar på oppgave 9"
 }
-Den viktige forskjellen mellom eksemplene er at den forige i `{p.element_id for p in ...}` så ga den resultat `{5, 6, 9}` og i den nye koden så blir det heller `{5: "tekst", 6: "tekst"}`.
+```
+
+Den viktige forskjellen mellom eksemplene:
+- `{p.element_id for p in ...}` → gir `{5, 6, 9}` *(set - bare verdier)*
+- `{a.element_id: a.answer for a in ...}` → gir `{5: "tekst", 6: "tekst"}` *(dict – key/value)*
