@@ -52,6 +52,13 @@ Brukes til å signere session cookies. Innlogging fungerer ikke uten denne nøkk
 
 > **Session cookies** er midlertidige filer som brukes av nettsider for å huske informasjon om deg mens du navigerer fra side til side i løpet av ett enkelt besøk. De lagrer informasjon om brukeren (for eksempel innloggingsstatus) mellom forespørsler til serveren.
 
+# Når du går til en ny side
+1. Du klikker en link
+2. Nettleseren sender cookie med request
+3. Flask leser cookie
+4. Flask sier: “aha, dette er user 1”
+5. current_user blir satt automatisk
+
 ---
 
 ### `SQLALCHEMY_DATABASE_URI`
