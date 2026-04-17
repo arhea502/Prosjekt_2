@@ -57,7 +57,7 @@ Brukes til å signere session cookies. Innlogging fungerer ikke uten denne nøkk
 2. Nettleseren sender cookie med request
 3. Flask leser cookie
 4. Flask sier: “aha, dette er user 1”
-5. current_user blir satt automatisk
+5. `current_user` blir satt automatisk
 
 ---
 
