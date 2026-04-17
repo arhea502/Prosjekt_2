@@ -868,3 +868,54 @@ DATABASE gir ID → HTML lager link → URL sender ID → Flask bruker ID → DA
 [ DATABASE ]
    SELECT id=5
 ```
+---
+```python
+@app.route('/topic/<int:topic_id>')
+@login_required
+def topic(topic_id):
+    tema = Topic.query.get_or_404(topic_id)
+```
+Denne koden gjør det samme som section koden. Den får topic_id fra noe som `<a href="{{ url_for('topic', topic_id=topic.id) }}">` også henter den topic fra databasen med den id-en som blir gitt. 
+---
+
+```python
+answered_ids = {p.element_id for p in
+                    Progress.query.filter_by(user_id=current_user.id).all()}
+```
+Den her koden gjør at variabelen answered_ids skal hente frem noe for hver ting `(p)` i en liste.
+Altså den henter `p.elemend.id` per element den finner i listen.
+
+Der er nesten altid:
+"Hva vil du hente ut" først, og
+"hva du looper over" etterpå
+Derfor er det p.elementid først også p etter
+
+tenk at du har dette
+```python
+progress_list = [
+    Progress(element_id=5),
+    Progress(element_id=6),
+    Progress(element_id=9)
+]
+
+Da betyr `for p in progress_list:` at du skal hente en og en ting fra den listen.
+
+Så `p.element_id` betyr for hver ting den finner, skal den bare hente element_id.
+
+Tilslutt står det `Progress.query.filter_by(user_id=current_user.id).all()}` som betyr at det den henter ut skal tilhøre current user som er logget inn. Det gjør den ved at den filtrerer søket sit etter user_id, imens den søker etter element_id
+```
+---
+
+```python
+  open_answers = {a.element_id: a.answer for a in
+                    OpenAnswer.query.filter_by(user_id=current_user.id).all()}
+```
+Den her koden er litt anderledes, selv om den ser helt lik ut. Forskjellen er at den her har en key og value i loopen. Ved at det er en : mellom element_id og answer gjør at element_id er key og answer er value.
+Så resultatet blir noe som 
+```python
+{
+    5: "Svar på oppgave 5",
+    6: "Svar på oppgave 6",
+    9: "Svar på oppgave 9"
+}
+Den viktige forskjellen mellom eksemplene er at den forige i `{p.element_id for p in ...}` så ga den resultat `{5, 6, 9}` og i den nye koden så blir det heller `{5: "tekst", 6: "tekst"}`.
