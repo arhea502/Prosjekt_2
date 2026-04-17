@@ -856,3 +856,68 @@ Så resultatet blir:
 Den viktige forskjellen mellom eksemplene:
 - `{p.element_id for p in ...}` → gir `{5, 6, 9}` *(set - bare verdier)*
 - `{a.element_id: a.answer for a in ...}` → gir `{5: "tekst", 6: "tekst"}` *(dict – key/value)*
+
+Disse verdiene fra Python kan kobles direkte til en HTML-fil ved hjelp av Jinja.
+
+Du sender data inn i templaten slik
+```python
+return render_template('topic.html',
+    topic=tema,
+    elements_rendered=elements_rendered,
+    answered_ids=answered_ids,
+    open_answers=open_answers)
+```
+Så i topic.html har du tilgang til:
+answered_ids → {5, 6, 9}
+open_answers → {5: "tekst", 6: "tekst"}
+
+Et typisk bruk av disse verdiene i jinja aer når du looper gjennom elementer med `{% for el, content in elements_rendered %}`
+Dette er det samme som for `p.element_id for p in` som vi kjørte tidligere
+
+Men en annen måte jeg ønsker å bruke dette på er å sjekke om noe er besvart (answered_ids).
+Da kan jeg kjøre noe som
+```html
+{% if el.id in answered_ids %}
+    <p>✅ Du har svart på denne</p>
+{% else %}
+    <p>❌ Ikke besvart enda</p>
+{% endif %}
+```
+Denne koden sjekker om den finner element_id i answered_ids som vi lagde tidligere.
+Som da sier om det er besvart eller ikke. Det er som å gjøre python i html.
+
+Og det samme gjelder open_answers som vi også lagde.
+via at den kjører 
+```html
+{% if el.id in open_answers %}
+    <p>Ditt svar: {{ open_answers[el.id] }}</p>
+{% endif %}
+```
+Her bruker den key og value dictionary igjen til å gi resultatet `{5: "Svar...", 6: "Svar..."}`
+
+Denne koden sjekker om den finner element_id i open_answers variabelen vi lagde også skriver den ut hvilken oppgave den tilhørte og hva vi svarte.
+
+Kombinert blir det noe som:
+```html
+{% for el, content in elements_rendered %}
+
+    <div class="element">
+        <div>{{ content|safe }}</div>
+
+        {% if el.id in answered_ids %}
+            <p>✅ Besvart</p>
+        {% else %}
+            <p>❌ Ikke besvart</p>
+        {% endif %}
+
+        {% if el.id in open_answers %}
+            <p><strong>Ditt svar:</strong> {{ open_answers[el.id] }}</p>
+        {% endif %}
+
+    </div>
+
+{% endfor %}
+```
+Og resultatet blir noe som:
+`✅ Besvart, Ditt svar: Jeg tror svaret er 10`
+---
