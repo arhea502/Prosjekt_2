@@ -1,6 +1,6 @@
 # APP.PY – Dokumentasjon
 
-Dokumentasjon av Flask-appens konfigurasjon, innloggingssystem og databasemodeller.
+Dokumentasjon av Flask-appens konfigurasjon, innloggingssystem, databasemodeller og ruter.
 
 ---
 
@@ -125,6 +125,12 @@ def load_user(user_id):
 `user_loader` er en callback-funksjon som Flask trenger. Når en bruker allerede er logget inn, lagrer Flask `user_id`, og når den trenger ID-en igjen sier den bare: *"Gi meg brukeren med denne user_id."*
 
 Funksjonen lar `flask_login` hente brukere fra databasen. Den kalles automatisk ved hver forespørsel som bruker session-cookies med bruker-ID. Den henter brukeren fra databasen (`return User.query.get`) og konverterer cookie-ID-en til heltall (`int(user_id)`), siden ID-en i databasen er et heltall og `user_id` ofte er en string.
+
+# Når du besøker en ny side
+1. Nettleseren sender session-cookie til Flask
+2. Flask-Login leser cookie
+3. Den ser: “aha, user_id = 1”
+4. Da kaller den user_loader-funksjonen
 
 ---
 
@@ -928,3 +934,26 @@ Kombinert blir det noe som:
 Og resultatet blir noe som:
 `✅ Besvart, Ditt svar: Jeg tror svaret er 10`
 ---
+```python 
+elements_rendered = []
+for el in tema.elements:
+    rendered = el.content
+    if el.type == 'markdown':
+        rendered = md.markdown(el.content or '',
+                               extensions=['fenced_code', 'tables'])
+    elements_rendered.append((el, rendered))
+```
+Denne koden gjør bare læringsinnhold klart til HTML før det sendes til Jinja
+
+Første linje `elements_rendered = []` lager en tom liste som skal senere fylles med element og ferdig html/tekst
+
+Loopen går gjennom alle læringselementer i topic `for el in tema.elements:` forskjellen mellom denne og den vi hadde tidligere i answers_id. Er at den her bruker ikke set eller dict, det bare er helheten altså en loop. 
+
+`rendered = el.content` betyr at den starter med rå data. Altså den starter med akkuratt sån den er i databasen uten av å bli behandlet. I dette tilfelle er el er Learningelement. 
+`rendered` betyr ferdig behandler eller klar til visning.
+
+Det er i `if el.type == 'markdown': rendered = md.markdown(...)` Hvor den sier at om elementet den henter fram er markdown, skal den gjøre markdown om til HTML.
+Eksempel på dette er:
+**Hei** → <strong>Hei</strong>
+
+Også lagrer vi resultatet med `elements_rendered.append((el, rendered))`.
