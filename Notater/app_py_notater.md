@@ -50,7 +50,7 @@ app.config['SECRET_KEY'] = '108158379'
 
 Brukes til å signere session cookies. Innlogging fungerer ikke uten denne nøkkelen. Uten en `SECRET_KEY` kan brukere i teorien manipulere session-data.
 
-> **Session cookies** er midlertidige filer som brukes av nettsider for å huske informasjon om deg mens du navigerer fra side til side i løpet av ett enkelt besøk. De lagrer informasjon om brukeren (for eksempel innloggingsstatus) mellom forespørsler til serveren.
+> **Session cookies** er midlertidig data som brukes av nettsider for å huske informasjon om deg mens du navigerer fra side til side i løpet av ett enkelt besøk. De lagrer informasjon om brukeren (for eksempel innloggingsstatus) mellom forespørsler til serveren.
 
 **Når du går til en ny side:**
 1. Du klikker en link
@@ -133,6 +133,83 @@ Funksjonen lar `flask_login` hente brukere fra databasen. Den kalles automatisk 
 4. Da kaller den user_loader-funksjonen
 
 ---
+
+┌──────────────────────────────┐
+│ 1. Bruker logger inn         │
+│    POST /login               │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ Flask sjekker database       │
+│ User.query.filter_by(...)    │
+│ + check_password_hash        │
+└──────────────┬───────────────┘
+               │ (hvis OK)
+               ▼
+┌──────────────────────────────┐
+│ login_user(user)             │
+│ → Flask-Login aktiveres      │
+└──────────────┬───────────────┘
+               │
+               ▼
+┌──────────────────────────────────────────┐
+│ SESSION SKAPES                           │
+│                                          │
+│ Flask lagrer:                            │
+│   session["user_id"] = user.id          │
+│                                          │
+│ Dette sendes som cookie til nettleser   │
+└──────────────┬───────────────────────────┘
+               │
+               ▼
+════════════════════════════════════════════
+      BRUKER GÅR TIL NY SIDE (GET)
+════════════════════════════════════════════
+               │
+               ▼
+┌──────────────────────────────────────────┐
+│ Nettleser sender cookie tilbake         │
+│ → inneholder session data               │
+└──────────────┬───────────────────────────┘
+               │
+               ▼
+┌──────────────────────────────────────────┐
+│ Flask-Login leser session               │
+│                                          │
+│ session["user_id"] = 5                  │
+└──────────────┬───────────────────────────┘
+               │
+               ▼
+┌──────────────────────────────────────────┐
+│ user_loader KJØRES                      │
+│                                          │
+│ load_user(5)                             │
+│ → User.query.get(5)                     │
+└──────────────┬───────────────────────────┘
+               │
+               ▼
+┌──────────────────────────────────────────┐
+│ current_user blir satt                  │
+│                                          │
+│ current_user = User(id=5, ...)          │
+└──────────────┬───────────────────────────┘
+               │
+               ▼
+┌──────────────────────────────────────────┐
+│ ROUTE KJØRER                            │
+│                                          │
+│ @login_required sjekker:                │
+│   er current_user authenticated?        │
+│                                          │
+│ Hvis JA → kjør view function            │
+│ Hvis NEI → redirect til /login          │
+└──────────────┬───────────────────────────┘
+               │
+               ▼
+┌──────────────────────────────┐
+│ RETURN render_template(...)  │
+└──────────────────────────────┘
 
 ## Databasemodeller
 
