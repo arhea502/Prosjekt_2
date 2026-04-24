@@ -136,17 +136,23 @@ Funksjonen lar `flask_login` hente brukere fra databasen. Den kalles automatisk 
 
 ```mermaid
 flowchart TD
-    A[POST /login] --> B[Sjekk database]
-    B -->|hvis OK| C[login_user]
-    C --> D[Session skapes]
-    D --> E{Bruker går til ny side}
-    E --> F[Nettleser sender cookie]
-    F --> G[Flask-Login leser session]
-    G --> H[user_loader kjøres]
-    H --> I[current_user settes]
-    I --> J{"@login_required"}
-    J -->|JA| K[render_template]
-    J -->|NEI| L[redirect /login]
+    A["Bruker logger inn\nPOST /login"] --> B
+    B["Flask sjekker database\nUser.query.filter_by\n+ check_password_hash"] -->|hvis OK| C
+    C["login_user(user)\n→ Flask-Login aktiveres"] --> D
+    D["SESSION SKAPES\nsession['user_id'] = user.id\nSendes som cookie til nettleser"] --> E
+
+    E{{"BRUKER GÅR TIL NY SIDE (GET)"}} --> F
+
+    F["Nettleser sender cookie tilbake\n→ inneholder session data"] --> G
+    G["Flask-Login leser session\nsession['user_id'] = 5"] --> H
+    H["user_loader kjøres\nload_user(5)\n→ User.query.get(5)"] --> I
+    I["current_user blir satt\ncurrent_user = User(id=5, ...)"] --> J
+
+    J{"@login_required\ner current_user authenticated?"} -->|JA| K
+    J -->|NEI| L
+
+    K["return render_template(...)"]
+    L["redirect til /login"]
 ```
 
 
