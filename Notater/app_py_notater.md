@@ -967,7 +967,7 @@ el3 → quiz
 
 Det er i `if el.type == 'markdown': rendered = md.markdown(...)` at den sier at om elementet den henter fram er markdown, skal den gjøre markdown om til HTML. Eksempel:
 
-```
+```html
 **Hei**  →  <strong>Hei</strong>
 ```
 
@@ -977,7 +977,7 @@ Det er `rendered = md.markdown` som gjør markdown om til HTML, resten er bare u
 
 **`fenced_code`** gjør sånn at man kan skrive kode i blokker:
 
-````
+````python
 ```python
 print("hei")
 ```
