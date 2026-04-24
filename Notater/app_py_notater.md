@@ -138,13 +138,13 @@ Funksjonen lar `flask_login` hente brukere fra databasen. Den kalles automatisk 
 flowchart TD
     A[POST /login] --> B[Sjekk database]
     B -->|hvis OK| C[login_user]
-    C --> D[Session skapes\nsession_user_id = user.id]
+    C --> D[Session skapes]
     D --> E{Bruker går til ny side}
     E --> F[Nettleser sender cookie]
     F --> G[Flask-Login leser session]
     G --> H[user_loader kjøres]
     H --> I[current_user settes]
-    I --> J{@login_required}
+    I --> J{"@login_required"}
     J -->|JA| K[render_template]
     J -->|NEI| L[redirect /login]
 ```
