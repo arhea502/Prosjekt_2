@@ -52,11 +52,11 @@ Brukes til å signere session cookies. Innlogging fungerer ikke uten denne nøkk
 
 > **Session cookies** er midlertidige filer som brukes av nettsider for å huske informasjon om deg mens du navigerer fra side til side i løpet av ett enkelt besøk. De lagrer informasjon om brukeren (for eksempel innloggingsstatus) mellom forespørsler til serveren.
 
-# Når du går til en ny side
+**Når du går til en ny side:**
 1. Du klikker en link
 2. Nettleseren sender cookie med request
 3. Flask leser cookie
-4. Flask sier: “aha, dette er user 1”
+4. Flask sier: "aha, dette er user 1"
 5. `current_user` blir satt automatisk
 
 ---
@@ -126,10 +126,10 @@ def load_user(user_id):
 
 Funksjonen lar `flask_login` hente brukere fra databasen. Den kalles automatisk ved hver forespørsel som bruker session-cookies med bruker-ID. Den henter brukeren fra databasen (`return User.query.get`) og konverterer cookie-ID-en til heltall (`int(user_id)`), siden ID-en i databasen er et heltall og `user_id` ofte er en string.
 
-# Når du besøker en ny side
+**Når du besøker en ny side:**
 1. Nettleseren sender session-cookie til Flask
 2. Flask-Login leser cookie
-3. Den ser: “aha, user_id = 1”
+3. Den ser: "aha, user_id = 1"
 4. Da kaller den user_loader-funksjonen
 
 ---
@@ -867,12 +867,14 @@ Så resultatet blir:
 ```
 
 Den viktige forskjellen mellom eksemplene:
-- `{p.element_id for p in ...}` → gir `{5, 6, 9}` *(set - bare verdier)*
+
+- `{p.element_id for p in ...}` → gir `{5, 6, 9}` *(set – bare verdier)*
 - `{a.element_id: a.answer for a in ...}` → gir `{5: "tekst", 6: "tekst"}` *(dict – key/value)*
 
 Disse verdiene fra Python kan kobles direkte til en HTML-fil ved hjelp av Jinja.
 
-Du sender data inn i templaten slik
+Du sender data inn i templaten slik:
+
 ```python
 return render_template('topic.html',
     topic=tema,
@@ -880,15 +882,15 @@ return render_template('topic.html',
     answered_ids=answered_ids,
     open_answers=open_answers)
 ```
-Så i topic.html har du tilgang til:
-answered_ids → {5, 6, 9}
-open_answers → {5: "tekst", 6: "tekst"}
 
-Et typisk bruk av disse verdiene i jinja aer når du looper gjennom elementer med `{% for el, content in elements_rendered %}`
-Dette er det samme som for `p.element_id for p in` som vi kjørte tidligere
+Så i `topic.html` har du tilgang til:
+- `answered_ids` → `{5, 6, 9}`
+- `open_answers` → `{5: "tekst", 6: "tekst"}`
 
-Men en annen måte jeg ønsker å bruke dette på er å sjekke om noe er besvart (answered_ids).
-Da kan jeg kjøre noe som
+Et typisk bruk av disse verdiene i Jinja er når du looper gjennom elementer med `{% for el, content in elements_rendered %}`. Dette er det samme som `for p.element_id for p in` som vi kjørte tidligere.
+
+Men en annen måte jeg ønsker å bruke dette på er å sjekke om noe er besvart (`answered_ids`). Da kan jeg kjøre noe som:
+
 ```html
 {% if el.id in answered_ids %}
     <p>✅ Du har svart på denne</p>
@@ -896,21 +898,21 @@ Da kan jeg kjøre noe som
     <p>❌ Ikke besvart enda</p>
 {% endif %}
 ```
-Denne koden sjekker om den finner element_id i answered_ids som vi lagde tidligere.
-Som da sier om det er besvart eller ikke. Det er som å gjøre python i html.
 
-Og det samme gjelder open_answers som vi også lagde.
-via at den kjører 
+Denne koden sjekker om den finner `element_id` i `answered_ids` som vi lagde tidligere. Som da sier om det er besvart eller ikke. Det er som å gjøre Python i HTML.
+
+Og det samme gjelder `open_answers` som vi også lagde:
+
 ```html
 {% if el.id in open_answers %}
     <p>Ditt svar: {{ open_answers[el.id] }}</p>
 {% endif %}
 ```
-Her bruker den key og value dictionary igjen til å gi resultatet `{5: "Svar...", 6: "Svar..."}`
 
-Denne koden sjekker om den finner element_id i open_answers variabelen vi lagde også skriver den ut hvilken oppgave den tilhørte og hva vi svarte.
+Her bruker den key og value dictionary igjen til å gi resultatet `{5: "Svar...", 6: "Svar..."}`. Denne koden sjekker om den finner `element_id` i `open_answers`-variabelen vi lagde, også skriver den ut hvilken oppgave den tilhørte og hva vi svarte.
 
 Kombinert blir det noe som:
+
 ```html
 {% for el, content in elements_rendered %}
 
@@ -931,10 +933,14 @@ Kombinert blir det noe som:
 
 {% endfor %}
 ```
-Og resultatet blir noe som:
-`✅ Besvart, Ditt svar: Jeg tror svaret er 10`
+
+Og resultatet blir noe som: `✅ Besvart, Ditt svar: Jeg tror svaret er 10`
+
 ---
-```python 
+
+### `elements_rendered`
+
+```python
 elements_rendered = []
 for el in tema.elements:
     rendered = el.content
@@ -943,17 +949,65 @@ for el in tema.elements:
                                extensions=['fenced_code', 'tables'])
     elements_rendered.append((el, rendered))
 ```
-Denne koden gjør bare læringsinnhold klart til HTML før det sendes til Jinja
 
-Første linje `elements_rendered = []` lager en tom liste som skal senere fylles med element og ferdig html/tekst
+Denne koden gjør læringsinnhold klart til HTML før det sendes til Jinja, og gjør markdown om til HTML.
 
-Loopen går gjennom alle læringselementer i topic `for el in tema.elements:` forskjellen mellom denne og den vi hadde tidligere i answers_id. Er at den her bruker ikke set eller dict, det bare er helheten altså en loop. 
+`elements_rendered = []` lager en tom liste som skal fylles med element og ferdig HTML/tekst.
 
-`rendered = el.content` betyr at den starter med rå data. Altså den starter med akkuratt sån den er i databasen uten av å bli behandlet. I dette tilfelle er el er Learningelement. 
-`rendered` betyr ferdig behandler eller klar til visning.
+Loopen går gjennom alle læringselementer i topic med `for el in tema.elements:`. Forskjellen mellom denne og den vi hadde tidligere i `answers_id` er at denne ikke bruker set eller dict – den bare er helheten, altså en vanlig loop.
 
-Det er i `if el.type == 'markdown': rendered = md.markdown(...)` Hvor den sier at om elementet den henter fram er markdown, skal den gjøre markdown om til HTML.
-Eksempel på dette er:
-**Hei** → <strong>Hei</strong>
+Den går gjennom:
+```
+el1 → tekst
+el2 → markdown
+el3 → quiz
+```
+
+`rendered = el.content` betyr at den starter med rå data – akkuratt sånn den er i databasen uten å bli behandlet. I dette tilfellet er `el` et `LearningElement`. `rendered` betyr ferdig behandlet eller klar til visning.
+
+Det er i `if el.type == 'markdown': rendered = md.markdown(...)` at den sier at om elementet den henter fram er markdown, skal den gjøre markdown om til HTML. Eksempel:
+
+```
+**Hei**  →  <strong>Hei</strong>
+```
+
+I `rendered = md.markdown(el.content or '')` betyr `el.content or ''` at hvis content er `None` skal den bruke tom tekst, så det ikke krasjer.
+
+Det er `rendered = md.markdown` som gjør markdown om til HTML, resten er bare utvidelser som gjør hva markdown forstår kraftigere. Fordi standard markdown er ganske basic.
+
+**`fenced_code`** gjør sånn at man kan skrive kode i blokker:
+
+````
+```python
+print("hei")
+```
+````
+
+Som da i HTML blir til:
+
+```html
+<pre><code class="language-python">
+print("hei")
+</code></pre>
+```
+
+I browseren ser den ut som en kodeblokk med riktig formatting som kan styles med CSS. Uten `fenced_code` vil ikke koden bli tolket som kode og heller bare vises som vanlig tekst.
+
+**`tables`** gjør det samme, den kan gjøre:
+
+```
+| Navn | Alder |
+|------|-------|
+| Ola  | 20    |
+```
+
+om til:
+
+```html
+<table>
+  <tr><th>Navn</th><th>Alder</th></tr>
+  <tr><td>Ola</td><td>20</td></tr>
+</table>
+```
 
 Også lagrer vi resultatet med `elements_rendered.append((el, rendered))`.
