@@ -134,82 +134,21 @@ Funksjonen lar `flask_login` hente brukere fra databasen. Den kalles automatisk 
 
 ---
 
-┌──────────────────────────────┐
-│ 1. Bruker logger inn         │
-│    POST /login               │
-└──────────────┬───────────────┘
-               │
-               ▼
-┌──────────────────────────────┐
-│ Flask sjekker database       │
-│ User.query.filter_by(...)    │
-│ + check_password_hash        │
-└──────────────┬───────────────┘
-               │ (hvis OK)
-               ▼
-┌──────────────────────────────┐
-│ login_user(user)             │
-│ → Flask-Login aktiveres      │
-└──────────────┬───────────────┘
-               │
-               ▼
-┌──────────────────────────────────────────┐
-│ SESSION SKAPES                           │
-│                                          │
-│ Flask lagrer:                            │
-│   session["user_id"] = user.id          │
-│                                          │
-│ Dette sendes som cookie til nettleser   │
-└──────────────┬───────────────────────────┘
-               │
-               ▼
-════════════════════════════════════════════
-      BRUKER GÅR TIL NY SIDE (GET)
-════════════════════════════════════════════
-               │
-               ▼
-┌──────────────────────────────────────────┐
-│ Nettleser sender cookie tilbake         │
-│ → inneholder session data               │
-└──────────────┬───────────────────────────┘
-               │
-               ▼
-┌──────────────────────────────────────────┐
-│ Flask-Login leser session               │
-│                                          │
-│ session["user_id"] = 5                  │
-└──────────────┬───────────────────────────┘
-               │
-               ▼
-┌──────────────────────────────────────────┐
-│ user_loader KJØRES                      │
-│                                          │
-│ load_user(5)                             │
-│ → User.query.get(5)                     │
-└──────────────┬───────────────────────────┘
-               │
-               ▼
-┌──────────────────────────────────────────┐
-│ current_user blir satt                  │
-│                                          │
-│ current_user = User(id=5, ...)          │
-└──────────────┬───────────────────────────┘
-               │
-               ▼
-┌──────────────────────────────────────────┐
-│ ROUTE KJØRER                            │
-│                                          │
-│ @login_required sjekker:                │
-│   er current_user authenticated?        │
-│                                          │
-│ Hvis JA → kjør view function            │
-│ Hvis NEI → redirect til /login          │
-└──────────────┬───────────────────────────┘
-               │
-               ▼
-┌──────────────────────────────┐
-│ RETURN render_template(...)  │
-└──────────────────────────────┘
+```mermaid
+flowchart TD
+    A[POST /login] --> B[Sjekk database]
+    B -->|hvis OK| C[login_user]
+    C --> D[Session skapes\nsession_user_id = user.id]
+    D --> E{Bruker går til ny side}
+    E --> F[Nettleser sender cookie]
+    F --> G[Flask-Login leser session]
+    G --> H[user_loader kjøres]
+    H --> I[current_user settes]
+    I --> J{@login_required}
+    J -->|JA| K[render_template]
+    J -->|NEI| L[redirect /login]
+```
+
 
 ## Databasemodeller
 
