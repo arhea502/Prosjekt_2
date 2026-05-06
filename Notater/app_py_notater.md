@@ -1032,4 +1032,4 @@ om til:
 </table>
 ```
 
-Også lagrer vi resultatet med `elements_rendered.append((el, rendered))`.
+Også lagrer vi resultatet med `elements_rendered.append((el, rendered))`. I lista elements_rendered. Den inneholder to ting sammen som en enhet. El er selve elementet fra databasen for eksempel spørsmål eller inhold. Rendered er ferdig prosessert inhold for eksempel HTML etter markdown.

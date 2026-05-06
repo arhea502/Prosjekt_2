@@ -1,6 +1,4 @@
-# -------------------------------
-# 📦 IMPORTS
-# -------------------------------
+
 from flask import (Flask, render_template, redirect,
                    url_for, request, flash, jsonify, abort)
 from flask_sqlalchemy import SQLAlchemy
@@ -12,19 +10,12 @@ from functools import wraps
 import markdown as md
     
 
-# -------------------------------
-# ⚙️ APP CONFIG
-# -------------------------------
 app = Flask(__name__)     
 app.config['SECRET_KEY'] = '108158379'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 
 db = SQLAlchemy(app)
 
-
-# -------------------------------
-# 🔐 FLASK-LOGIN
-# -------------------------------
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
@@ -33,9 +24,7 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-# -------------------------------
-# 🗄 DATABASE MODELS
-# -------------------------------
+
 
 # User model
 class User(UserMixin, db.Model):
