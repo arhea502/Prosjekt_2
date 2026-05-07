@@ -513,7 +513,7 @@ with app.app_context():
         db.session.commit()
 ```
 
-`with app.app_context():` handler om at Flask trenger en "applikasjonskontekst" for å vite hvilken app som brukes når du jobber med databasen. Dette gjør sånn at databasen kan brukes uten en HTTP-forespørsel. Uten denne vil for eksempel `db.create_all()` ikke vite hvor databasen er.
+`with app.app_context():` handler om at Flask trenger en "applikasjonskontekst" for å vite hvilken app som brukes når du jobber med databasen. Dette gjør sånn at databasen kan brukes uten en HTTP-forespørsel. Uten denne vil for eksempel `db.create_all()` ikke vite hvor databasen er. Senere i koden når jeg drev med å legge ting i databasen lærte jeg at `app.appcpntext()` betyr bare "skru på appen midlertidig" så vi kan bruke databasen og config uten at en web-request kjører. Alle ruter har automatisk en appcontext defor krasjet det ikke tidligere, men når jeg prøvde å kjøre databasen på egenhånd krasjet det. 
 
 `db.create_all()` lager alle tabellene som er definert med `db.Model` fra tidligere. Nå er tabellene `User`, `Topic`, `Section` osv faktisk opprettet.
 
@@ -1033,3 +1033,49 @@ om til:
 ```
 
 Også lagrer vi resultatet med `elements_rendered.append((el, rendered))`. I lista elements_rendered. Den inneholder to ting sammen som en enhet. El er selve elementet fra databasen for eksempel spørsmål eller inhold. Rendered er ferdig prosessert inhold for eksempel HTML etter markdown.
+---
+
+```python
+@app.route('/profil')
+@login_required
+def profile():
+    uid      = current_user.id
+    answered = Progress.query.filter_by(user_id=uid).count()
+    correct  = Progress.query.filter_by(user_id=uid, correct=True).count()
+    visited  = TopicVisit.query.filter_by(user_id=uid).count()
+    topic_stats = []
+    for tema in Topic.query.all():
+        total = len(tema.elements)
+        if total == 0: continue
+        done = Progress.query.filter_by(user_id=uid).join(LearningElement).filter(
+            LearningElement.topic_id == tema.id).count()
+        topic_stats.append({
+            'topic': tema, 'done': done, 'total': total,
+            'percent': int(done / total * 100)
+        })
+    return render_template('profile.html',
+        answered=answered, correct=correct,
+        visited=visited, topic_stats=topic_stats)
+```
+Denne flask ruten lager en profileside med statistikk hentet fra databasen.
+Definerer hva som skjer når noen går til ruten med `def profile():`
+også lager den en variabel som har samme verdi som current_user som kommer fra login(user).
+Den henter frem answered, correct, visited via querry gjennom de forskjellige tabellene filltrert ved at user_id i databasen skal matche uid variabelen. Correct teller bare de hvor `correct = True`
+`.count` på slutten betyr at den skal telle radene den klarer å finne frem.
+
+`topic_stats` er en tom liste. 
+Så sier den at for hver tema som ligger i topic skal den hente alle tabeller.
+`total = len(tema.elements)` betyr at den skal telle hvor mange lærings elementer hver tema har. For eksempel kan drift ha quiz, åpen spørsmål eller markdown om diverse tema. Selve koden `len()` betyr bare "hvor mange ting er det her".
+Et vanlig eksempel på dette er: 
+```py
+frukt = ["eple", "banan", "pære"]
+len(frukt)
+```
+Hvor len da sier at det er 3 items i listen frukt
+visuelt: 
+tema.elements = [oppgave1, oppgave2, oppgave3]
+HUSK at det er section -> topic -> tema -> elements
+
+`if total == 0: continue` Siden total teller så sier denne koden at om total ikke er noe så skal den bare hoppe vidre og ikke gjøre resten av løkken fordi det ikke lenger er viktig. Dette er for å ikke krasje systemet når done/total kommer. Fordi done/0 kan ikke kjøres.
+
+`done = Progress.query.filter_by(user_id=uid).join(LearningElement).filter(LearningElement.topic_id == tema.id).count()` Er det som faktisk ser hva du har gjort ferdig. Den lager en variabel som heter done. Done har samme verdi som alle rader i progress hvor user_id er det samme som uid. `.join` betyr at den skal koble progress tabellen med LearningElement tabellen
