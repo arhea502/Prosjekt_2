@@ -1,11 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="no">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=, initial-scale=1.0">
-    <title>Document</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Læringsplattform{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    
+<nav>
+  <a href="/" class="nav-logo">Læringsplattform</a>
+  <div class="nav-links">
+    {% if current_user.is_authenticated %}
+      <a href="/">Hjem</a>
+      <a href="/profil">Profil</a>
+      {% if current_user.is_admin %}
+        <a href="/admin" class="nav-admin"> Admin</a>
+      {% endif %}
+      <span class="nav-user"> {{ current_user.username }}</span>
+      <a href="/logg-ut" class="nav-logout">Logg ut</a>
+    {% else %}
+      <a href="/login">Logg inn</a>
+      <a href="/register">Registrer</a>
+    {% endif %}
+  </div>
+</nav>
+<main>
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert {{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
 </body>
 </html>

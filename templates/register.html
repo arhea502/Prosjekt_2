@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Registrer{% endblock %}
+{% block content %}
+<div class="auth-wrap">
+  <h1>Opprett konto</h1>
+  <form method="post" class="auth-form">
+    <label>Velg brukernavn</label>
+    <input type="text" name="username" required autofocus>
+    <label>Velg passord</label>
+    <input type="password" name="password" required>
+    <button type="submit">Opprett konto</button>
+  </form>
+  <p class="auth-alt">Har du konto? <a href="/login">Logg inn</a></p>
+</div>
+{% endblock %}
