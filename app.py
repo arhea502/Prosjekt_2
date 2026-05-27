@@ -31,6 +31,7 @@ class User(UserMixin, db.Model):
     id            = db.Column(db.Integer, primary_key=True)
     username      = db.Column(db.String(80),  unique=True,  nullable=False)
     password_hash = db.Column(db.String(200),                  nullable=False)
+    ip_address    = db.Column(db.String(50))
     is_admin      = db.Column(db.Boolean, default=False) 
 
 # Section model
@@ -108,6 +109,8 @@ def login():
     if request.method == 'POST':
         user = User.query.filter_by(username=request.form['username']).first()
         if user and check_password_hash(user.password_hash, request.form['password']):
+            user.ip_address = request.remote_addr
+            db.session.commit
             login_user(user)
             return redirect(url_for('index'))
         flash('Feil brukernavn eller passord', 'error')
@@ -123,7 +126,8 @@ def register():
         db.session.add(User(
             username=username,
             password_hash=generate_password_hash(request.form['password']),
-            is_admin=False
+            is_admin=False,
+            ip_address=request.remote_addr
         ))
         db.session.commit()
         login_user(User.query.filter_by(username=username).first())
@@ -201,5 +205,13 @@ def profile():
         visited=visited, topic_stats=topic_stats)
 
 
+
+
+with app.app_context():
+    Users = User.query.all()
+    for u in Users:
+        print(u.id, u.username, u.password_hash, u.is_admin, u.ip_address)
+
+
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True, host='0.0.0.0', port=8080,)

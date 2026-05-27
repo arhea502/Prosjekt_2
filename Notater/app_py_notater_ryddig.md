@@ -27,10 +27,14 @@ Dokumentasjon av Flask-appens konfigurasjon, innloggingssystem, databasemodeller
   - [Section](#section-rute)
 
 ---
+---
+---
 
-## Konfigurasjon
+# 1. Konfigurasjon
 
 > Setter opp Flask-appen, databasetilkobling og hemmelig nøkkel for session-håndtering.
+
+---
 
 ### `Flask(__name__)`
 
@@ -89,10 +93,14 @@ SELECT * FROM user; # Rå SQL
 ```
 
 ---
+---
+---
 
-## Flask-Login
+# 2. Flask-Login
 
 > Setter opp innloggingssystemet og definerer hvordan Flask henter og gjenkjenner innloggede brukere.
+
+---
 
 ### `LoginManager(app)`
 
@@ -155,14 +163,17 @@ flowchart TD
     L["redirect til /login"]
 ```
 
+---
+---
+---
 
-## Databasemodeller
+# 3. Databasemodeller
 
 > Definerer strukturen til databasen. Hver klasse tilsvarer én tabell, og hver `db.Column` tilsvarer én kolonne i den tabellen.
 
 ---
 
-### `User`
+## `User`
 
 > Lagrer alle brukere i systemet, både vanlige brukere og admins.
 
@@ -196,7 +207,7 @@ Meningen er å kunne legge ting i databasen, hvor SQLite gjør alt bak kulissene
 
 ---
 
-### `Section`
+## `Section`
 
 > Lagrer de overordnede seksjonene i læringsplattformen – det øverste nivået i innholdshierarkiet.
 
@@ -238,7 +249,7 @@ Remove Topic B  →  Topic B slettes
 
 ---
 
-### `Topic`
+## `Topic`
 
 > Lagrer undertemaer innenfor en section – det midterste nivået i innholdshierarkiet.
 
@@ -257,7 +268,7 @@ En annen viktig ting er `db.ForeignKey('section.id')`. Dette er koden som faktis
 
 ---
 
-### `LearningElement`
+## `LearningElement`
 
 > Lagrer selve innholdet i et topic – enten tekst, quiz eller åpne spørsmål.
 
@@ -333,7 +344,7 @@ På grunn av `backref='section'` kan man gå baklengs også.
 
 ---
 
-### `Progress`
+## `Progress`
 
 > Lagrer om en bruker har svart riktig eller feil på et læringselement.
 
@@ -368,7 +379,7 @@ Som du kan se har 2 brukere gjort samme oppgave riktig, men bruker 1 gjorde 2 op
 
 ---
 
-### `OpenAnswer`
+## `OpenAnswer`
 
 > Lagrer brukerens tekstsvar på åpne spørsmål, uten å vurdere om det er riktig eller feil.
 
@@ -400,7 +411,7 @@ Her kan du senere hente alle svar til et læringselement og evaluere dem manuelt
 
 ---
 
-### `TopicVisit`
+## `TopicVisit`
 
 > Lagrer hvilke topics en bruker har besøkt – brukes til å spore fremgang i innholdshierarkiet.
 
@@ -421,7 +432,7 @@ Dette er en enkel kode som sier hvilke topics brukeren har besøkt. Det gjør de
 
 ---
 
-### Total databasestruktur
+## Total databasestruktur
 
 > Oversikt over alle tabeller og hvordan de henger sammen via relasjoner og fremmednøkler.
 
@@ -496,8 +507,10 @@ NØKKELFORKLARINGER
 ```
 
 ---
+---
+---
 
-## Admin-oppsett
+# 4. Admin-oppsett
 
 > Oppretter alle databasetabeller ved oppstart, og legger til en standard admin-bruker hvis den ikke allerede finnes.
 
@@ -526,8 +539,10 @@ with app.app_context():
 Innenfor `session.add(User(...))` finner du tabellene vi lagde i `User`-modellen: `username`, `password_hash` og `is_admin`. `username` og `is_admin` er ganske rett frem. `password_hash` er litt annerledes – her har vi satt den til `"admin123"`, men pakket inn i `generate_password_hash`. Det er noe Flask/Werkzeug-biblioteket bruker for å sjekke passord når noen logger inn.
 
 ---
+---
+---
 
-## `@admin_required` Decorator
+# 5. `@admin_required` Decorator
 
 > Definerer hvor admin kreves. Man legger `@admin_required` over en route, og den gir bare tilgang til brukere med admin-privilegier. Ellers sendes brukeren til error 403 – "Forbidden" – det vil si at handlingen du prøver å utføre ikke er tillatt.
 
@@ -639,7 +654,7 @@ admin_panel = admin_required(admin_panel)
 - `f` blir satt til originalfunksjonen (`admin_panel`)
 - Dekoratoren lager `decorated`, som nå er funksjonen Flask faktisk kaller når noen besøker `/admin/<id>`
 
-**Når siden kalles: URL `/admin/5`:**
+**Når siden kalles – URL `/admin/5`:**
 
 ```
 Flask gjør:  decorated(5)
@@ -657,12 +672,14 @@ Inni dekoratoren:
 - `@wraps(f)` sørger for at navnet og docstringen til `f` beholdes
 
 ---
+---
+---
 
-## Ruter
+# 6. Ruter
 
 ---
 
-### Login-rute
+## Login-rute
 
 ```python
 @app.route('/login', methods=['GET', 'POST'])
@@ -712,7 +729,7 @@ redirect til index                   ↓
 
 ---
 
-### Register-rute
+## Register-rute
 
 ```python
 @app.route('/register', methods=['GET', 'POST'])
@@ -737,7 +754,7 @@ Her er det bare masse kode som vi har gått gjennom tidligere, men det jeg kan s
 
 ---
 
-### Logg ut-rute
+## Logg ut-rute
 
 ```python
 @app.route('/logg-ut')
@@ -751,7 +768,7 @@ Den her er også ganske rett fram. Den definerer ruten logg-ut. Sier at du må v
 
 ---
 
-### Index-rute
+## Index-rute
 
 ```python
 @app.route('/')
@@ -782,7 +799,7 @@ HTML får `sections=sections`, så i HTML kan du gjøre:
 
 ---
 
-### Section-rute
+## Section-rute
 
 ```python
 @app.route('/section/<int:section_id>')
@@ -823,7 +840,7 @@ DATABASE gir ID → HTML lager link → URL sender ID → Flask bruker ID → DA
 
 ---
 
-### Topic-rute
+## Topic-rute
 
 ```python
 @app.route('/topic/<int:topic_id>')
@@ -836,7 +853,7 @@ Denne koden gjør det samme som section-koden. Den får `topic_id` fra noe som `
 
 ---
 
-### Set comprehension – `answered_ids`
+## Set comprehension – `answered_ids`
 
 ```python
 answered_ids = {p.element_id for p in
@@ -869,7 +886,7 @@ Resultat: `{5, 6, 9}`
 
 ---
 
-### Dict comprehension – `open_answers`
+## Dict comprehension – `open_answers`
 
 ```python
 open_answers = {a.element_id: a.answer for a in
@@ -960,7 +977,7 @@ Og resultatet blir noe som: `✅ Besvart, Ditt svar: Jeg tror svaret er 10`
 
 ---
 
-### `elements_rendered`
+## `elements_rendered`
 
 ```python
 elements_rendered = []
@@ -1033,7 +1050,10 @@ om til:
 ```
 
 Også lagrer vi resultatet med `elements_rendered.append((el, rendered))`. I lista elements_rendered. Den inneholder to ting sammen som en enhet. El er selve elementet fra databasen for eksempel spørsmål eller inhold. Rendered er ferdig prosessert inhold for eksempel HTML etter markdown.
+
 ---
+
+## Profil-rute
 
 ```python
 @app.route('/profil')
@@ -1057,6 +1077,7 @@ def profile():
         answered=answered, correct=correct,
         visited=visited, topic_stats=topic_stats)
 ```
+
 Denne flask ruten lager en profileside med statistikk hentet fra databasen.
 Definerer hva som skjer når noen går til ruten med `def profile():`
 også lager den en variabel som har samme verdi som current_user som kommer fra login(user).
