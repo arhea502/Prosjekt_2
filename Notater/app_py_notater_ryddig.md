@@ -117,6 +117,10 @@ Brukes til å signere session cookies. Innlogging fungerer ikke uten denne nøkk
 | Varighet | Kan vare i dager, uker eller år (til den utløper eller slettes) | Slettes vanligvis når du lukker nettleseren eller logger ut |
 | Bruk | Huske brukernavn, språkvalg, annonsesporing | Handlekurv, innloggingsstatus, sensitiv informasjon |
 
+**Klienten** er enheten eller programmet du bruker, som ber om informasjon.
+**Serveren** er datamaskinen som lagrer informasjonen og svarer på forespørselen.
+
+Klien sender forespørsel til server. For eksempel google search, 
 
 **Når du går til en ny side:**
 1. Du klikker en link
