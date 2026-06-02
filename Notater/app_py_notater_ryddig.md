@@ -34,11 +34,55 @@ Dokumentasjon av Flask-appens konfigurasjon, innloggingssystem, databasemodeller
 
 > Setter opp Flask-appen, databasetilkobling og hemmelig nøkkel for session-håndtering.
 
-# Venv.
+# Venv
 
-Venv er et virtuelt miljø i Python som lager en egen isolert “boble” for hvert prosjekt. Dette bidrar til å løse versjonsproblemer fordi pakker installeres inne i miljøet, ikke globalt på PC-en.
+Venv lager et virtuelt miljø i Python – en isolert boble for hvert prosjekt. Pakker installeres inne i bobla, ikke globalt på PC-en, noe som løser versjonskonflikter mellom prosjekter.
 
-For eksempel kan ett prosjekt bruke en eldre versjon av en pakke, mens et annet prosjekt bruker en nyere versjon, uten at de krasjer. Venv sørger for at prosjektene holdes skilt og ikke påvirker hverandre.
+## Hvorfor bruke venv?
+
+Uten venv deler alle prosjekter de samme globalt installerte pakkene. Dette skaper problemer når to prosjekter trenger ulike versjoner av samme pakke:
+
+| Uten venv | Med venv |
+|-----------|----------|
+| Prosjekt 1 trenger `pakke==1.0` | Prosjekt 1 får sitt eget miljø med `pakke==1.0` |
+| Prosjekt 2 trenger `pakke==2.0` | Prosjekt 2 får sitt eget miljø med `pakke==2.0` |
+| ❌ Konflikt | ✅ Ingen konflikt |
+
+## Mappestruktur
+
+Når et venv opprettes, genereres følgende automatisk:
+
+```
+venv/
+├── Include/    # Bare interne greier Python bruker (sjelden i bruk) (Kan ignoreres)
+├── Lib/        # Pakker installert i miljøet havner her (pip install)
+├── Scripts/    # Python-versjonen og kjørbare filer for miljøet (Denne brukes istedet for vanlig python)
+└── pyvenv.cfg  # Konfigurasjonsfil for miljøet (forteller hvilken versjon av python miløet bruker)
+```
+
+De viktigste å kjenne til er `Lib/` (der pakkene dine ligger) og `Scripts/` (som inneholder Python-tolken brukt i miljøet). Resten håndteres automatisk.
+
+## Kom i gang
+
+```bash
+# Opprett et nytt miljø
+python -m venv venv
+
+# Aktiver miljøet (Windows)
+venv\Scripts\activate
+
+# Aktiver miljøet (macOS/Linux)
+source venv/bin/activate
+
+# Installer pakker
+pip install <pakkenavn>
+
+# Deaktiver miljøet
+deactivate
+```
+
+> **Tips:** Legg til `venv/` i `.gitignore` så miljøet ikke lastes opp til versjonskontroll.
+
 
 ---
 
