@@ -56,7 +56,7 @@ Når et venv opprettes, genereres følgende automatisk:
 venv/
 ├── Include/    # Bare interne greier Python bruker (sjelden i bruk) (Kan ignoreres)
 ├── Lib/        # Pakker installert i miljøet havner her (pip install)
-├── Scripts/    # Python-versjonen og kjørbare filer for miljøet (Denne brukes istedet for vanlig python)
+├── Scripts/    # Python-versjonen og kjørbare filer for miljøet (Denne brukes istedet for vanlig python og andre koder som kan potensielt bli kjørt gjennom terminalen)
 └── pyvenv.cfg  # Konfigurasjonsfil for miljøet (forteller hvilken versjon av python miløet bruker)
 ```
 
