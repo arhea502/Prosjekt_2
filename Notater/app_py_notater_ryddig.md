@@ -6,9 +6,9 @@ Dokumentasjon av Flask-appens konfigurasjon, innloggingssystem, databasemodeller
 
 ## Innhold
 
-- [Konfigurasjon](#konfigurasjon)
-- [Flask-Login](#flask-login)
-- [Databasemodeller](#databasemodeller)
+- [Konfigurasjon](#1-konfigurasjon)
+- [Flask-Login](#2-flask-login)
+- [Databasemodeller](#3-databasemodeller)
   - [User](#user)
   - [Section](#section)
   - [Topic](#topic)
@@ -17,28 +17,42 @@ Dokumentasjon av Flask-appens konfigurasjon, innloggingssystem, databasemodeller
   - [OpenAnswer](#openanswer)
   - [TopicVisit](#topicvisit)
   - [Total databasestruktur](#total-databasestruktur)
-- [Admin-oppsett](#admin-oppsett)
-- [@admin\_required Decorator](#admin_required-decorator)
-- [Ruter](#ruter)
+- [Admin-oppsett](#4-admin-oppsett)
+- [@admin_required Decorator](#5-admin_required-decorator)
+- [Ruter](#6-ruter)
   - [Login](#login-rute)
   - [Register](#register-rute)
   - [Logg ut](#logg-ut-rute)
   - [Index](#index-rute)
   - [Section](#section-rute)
+  - [Topic](#topic-rute)
+  - [Set comprehension – answered_ids](#set-comprehension--answered_ids)
+  - [Dict comprehension – open_answers](#dict-comprehension--open_answers)
+  - [elements_rendered](#elements_rendered)
+  - [Profil](#profil-rute)
 
 ---
----
----
 
-# 1. Konfigurasjon
+## 1. Konfigurasjon
 
 > Setter opp Flask-appen, databasetilkobling og hemmelig nøkkel for session-håndtering.
 
-# Venv
+### Braannmur
+
+Slik fungerer den – Portvakt: All data går gjennom porter. Brannmuren bestemmer hvilke data som slipper inn og ut basert på strenge sikkerhetsregler. Blokkering: Hvis ukjent eller mistenkelig trafikk prøver å koble seg til enheten din, blir den stoppet i døren. Skille mellom nettverk: Den fungerer som en barriere mellom ditt private, trygge nettverk og det åpne, usikre internett.
+
+Programvare: En egen applikasjon eller innebygd funksjon (som Windows Defender Brannmur) installert direkte på PC-en din.
+Maskinvare: En fysisk boks som er koblet mellom internett og ruteren din, som beskytter hele hjemme- eller bedriftsnettverket.
+
+### Port
+
+Er som en postkasse med bestemt nummer. Om ip-en er bygningen så er porten numberet datapakker blir sent til.
+
+### Venv
 
 Venv lager et virtuelt miljø i Python – en isolert boble for hvert prosjekt. Pakker installeres inne i bobla, ikke globalt på PC-en, noe som løser versjonskonflikter mellom prosjekter.
 
-## Hvorfor bruke venv?
+#### Hvorfor bruke venv?
 
 Uten venv deler alle prosjekter de samme globalt installerte pakkene. Dette skaper problemer når to prosjekter trenger ulike versjoner av samme pakke:
 
@@ -48,7 +62,7 @@ Uten venv deler alle prosjekter de samme globalt installerte pakkene. Dette skap
 | Prosjekt 2 trenger `pakke==2.0` | Prosjekt 2 får sitt eget miljø med `pakke==2.0` |
 | ❌ Konflikt | ✅ Ingen konflikt |
 
-## Mappestruktur
+#### Mappestruktur
 
 Når et venv opprettes, genereres følgende automatisk:
 
@@ -62,7 +76,7 @@ venv/
 
 De viktigste å kjenne til er `Lib/` (der pakkene dine ligger) og `Scripts/` (som inneholder Python-tolken brukt i miljøet). Resten håndteres automatisk.
 
-## Kom i gang
+#### Kom i gang
 
 ```bash
 # Opprett et nytt miljø
@@ -82,7 +96,6 @@ deactivate
 ```
 
 > **Tips:** Legg til `venv/` i `.gitignore` så miljøet ikke lastes opp til versjonskontroll.
-
 
 ---
 
@@ -106,8 +119,8 @@ Brukes til å signere session cookies. Innlogging fungerer ikke uten denne nøkk
 
 > **Session cookies** er midlertidig data som brukes av nettsider for å huske informasjon om deg mens du navigerer fra side til side i løpet av ett enkelt besøk. De lagrer informasjon om brukeren (for eksempel innloggingsstatus) mellom forespørsler til serveren.
 
- **Cookies** (informasjonskapsler): Lagres lokalt i nettleseren på din egen PC eller mobil.
- **Sessions** (sesjoner): Lagres på serveren til nettstedet du besøker.
+**Cookies** (informasjonskapsler): Lagres lokalt i nettleseren på din egen PC eller mobil.
+**Sessions** (sesjoner): Lagres på serveren til nettstedet du besøker.
 
 | Egenskap | Cookies | Sessions |
 |---|---|---|
@@ -120,7 +133,7 @@ Brukes til å signere session cookies. Innlogging fungerer ikke uten denne nøkk
 **Klienten** er enheten eller programmet du bruker, som ber om informasjon.
 **Serveren** er datamaskinen som lagrer informasjonen og svarer på forespørselen.
 
-Klien sender forespørsel til server. For eksempel google search, 
+Klien sender forespørsel til server. For eksempel google search.
 
 **Når du går til en ny side:**
 1. Du klikker en link
@@ -163,11 +176,13 @@ Dette kalles en URI (Uniform Resource Identifier) – en standard måte å beskr
 - Databasebasert login
 - All persistent data
 
-
+```
 @login_required → triggerer authentication flow
 flash() → prøver å bruke session gjennom flash.session()
 session → crasher uten secret_key
  Fiks = set app.secret_key
+```
+
 ---
 
 ### `SQLAlchemy(app)`
@@ -196,10 +211,8 @@ SELECT * FROM user; # Rå SQL
 - `User.query.get()`
 
 ---
----
----
 
-# 2. Flask-Login
+## 2. Flask-Login
 
 > Setter opp innloggingssystemet og definerer hvordan Flask henter og gjenkjenner innloggede brukere.
 
@@ -307,16 +320,14 @@ flowchart TD
 | `user_loader` | `current_user` |
 
 ---
----
----
 
-# 3. Databasemodeller
+## 3. Databasemodeller
 
 > Definerer strukturen til databasen. Hver klasse tilsvarer én tabell, og hver `db.Column` tilsvarer én kolonne i den tabellen.
 
 ---
 
-## `User`
+### `User`
 
 > Lagrer alle brukere i systemet, både vanlige brukere og admins.
 
@@ -350,7 +361,7 @@ Meningen er å kunne legge ting i databasen, hvor SQLite gjør alt bak kulissene
 
 ---
 
-## `Section`
+### `Section`
 
 > Lagrer de overordnede seksjonene i læringsplattformen – det øverste nivået i innholdshierarkiet.
 
@@ -392,7 +403,7 @@ Remove Topic B  →  Topic B slettes
 
 ---
 
-## `Topic`
+### `Topic`
 
 > Lagrer undertemaer innenfor en section – det midterste nivået i innholdshierarkiet.
 
@@ -411,7 +422,7 @@ En annen viktig ting er `db.ForeignKey('section.id')`. Dette er koden som faktis
 
 ---
 
-## `LearningElement`
+### `LearningElement`
 
 > Lagrer selve innholdet i et topic – enten tekst, quiz eller åpne spørsmål.
 
@@ -487,7 +498,7 @@ På grunn av `backref='section'` kan man gå baklengs også.
 
 ---
 
-## `Progress`
+### `Progress`
 
 > Lagrer om en bruker har svart riktig eller feil på et læringselement.
 
@@ -522,7 +533,7 @@ Som du kan se har 2 brukere gjort samme oppgave riktig, men bruker 1 gjorde 2 op
 
 ---
 
-## `OpenAnswer`
+### `OpenAnswer`
 
 > Lagrer brukerens tekstsvar på åpne spørsmål, uten å vurdere om det er riktig eller feil.
 
@@ -554,7 +565,7 @@ Her kan du senere hente alle svar til et læringselement og evaluere dem manuelt
 
 ---
 
-## `TopicVisit`
+### `TopicVisit`
 
 > Lagrer hvilke topics en bruker har besøkt – brukes til å spore fremgang i innholdshierarkiet.
 
@@ -575,7 +586,7 @@ Dette er en enkel kode som sier hvilke topics brukeren har besøkt. Det gjør de
 
 ---
 
-## Total databasestruktur
+### Total databasestruktur
 
 > Oversikt over alle tabeller og hvordan de henger sammen via relasjoner og fremmednøkler.
 
@@ -650,10 +661,8 @@ NØKKELFORKLARINGER
 ```
 
 ---
----
----
 
-# 4. Admin-oppsett
+## 4. Admin-oppsett
 
 > Oppretter alle databasetabeller ved oppstart, og legger til en standard admin-bruker hvis den ikke allerede finnes.
 
@@ -669,7 +678,7 @@ with app.app_context():
         db.session.commit()
 ```
 
-`with app.app_context():` handler om at Flask trenger en "applikasjonskontekst" for å vite hvilken app som brukes når du jobber med databasen. Dette gjør sånn at databasen kan brukes uten en HTTP-forespørsel. Uten denne vil for eksempel `db.create_all()` ikke vite hvor databasen er. Senere i koden når jeg drev med å legge ting i databasen lærte jeg at `app.app_context()` betyr bare "skru på appen midlertidig" så vi kan bruke databasen og config uten at en web-request kjører. Alle ruter har automatisk en appcontext defor krasjet det ikke tidligere, men når jeg prøvde å kjøre databasen på egenhånd krasjet det. 
+`with app.app_context():` handler om at Flask trenger en "applikasjonskontekst" for å vite hvilken app som brukes når du jobber med databasen. Dette gjør sånn at databasen kan brukes uten en HTTP-forespørsel. Uten denne vil for eksempel `db.create_all()` ikke vite hvor databasen er. Senere i koden når jeg drev med å legge ting i databasen lærte jeg at `app.app_context()` betyr bare "skru på appen midlertidig" så vi kan bruke databasen og config uten at en web-request kjører. Alle ruter har automatisk en appcontext defor krasjet det ikke tidligere, men når jeg prøvde å kjøre databasen på egenhånd krasjet det.
 
 `db.create_all()` lager alle tabellene som er definert med `db.Model` fra tidligere. Nå er tabellene `User`, `Topic`, `Section` osv faktisk opprettet.
 
@@ -682,10 +691,8 @@ with app.app_context():
 Innenfor `session.add(User(...))` finner du tabellene vi lagde i `User`-modellen: `username`, `password_hash` og `is_admin`. `username` og `is_admin` er ganske rett frem. `password_hash` er litt annerledes – her har vi satt den til `"admin123"`, men pakket inn i `generate_password_hash`. Det er noe Flask/Werkzeug-biblioteket bruker for å sjekke passord når noen logger inn.
 
 ---
----
----
 
-# 5. `@admin_required` Decorator
+## 5. `@admin_required` Decorator
 
 > Definerer hvor admin kreves. Man legger `@admin_required` over en route, og den gir bare tilgang til brukere med admin-privilegier. Ellers sendes brukeren til error 403 – "Forbidden" – det vil si at handlingen du prøver å utføre ikke er tillatt.
 
@@ -815,14 +822,12 @@ Inni dekoratoren:
 - `@wraps(f)` sørger for at navnet og docstringen til `f` beholdes
 
 ---
----
----
 
-# 6. Ruter
+## 6. Ruter
 
 ---
 
-## Login-rute
+### Login-rute
 
 ```python
 @app.route('/login', methods=['GET', 'POST'])
@@ -837,6 +842,8 @@ def login():
 ```
 
 `@app.route('/login', methods=['GET', 'POST'])` lager en rute `/login` som kan håndtere både GET (vis siden) og POST (send data fra skjema – i dette tilfellet når du trykker "logg inn"-knappen).
+Hvis det ikke er noe så antar python automatisk GET.
+Get er en HTTP metode og betyr "Browseren requester data fra server"
 
 `if request.method == 'POST':` sjekker om brukeren har trykket på "logg inn" og sendt skjema.
 
@@ -872,7 +879,7 @@ redirect til index                   ↓
 
 ---
 
-## Register-rute
+### Register-rute
 
 ```python
 @app.route('/register', methods=['GET', 'POST'])
@@ -897,7 +904,7 @@ Her er det bare masse kode som vi har gått gjennom tidligere, men det jeg kan s
 
 ---
 
-## Logg ut-rute
+### Logg ut-rute
 
 ```python
 @app.route('/logg-ut')
@@ -911,7 +918,7 @@ Den her er også ganske rett fram. Den definerer ruten logg-ut. Sier at du må v
 
 ---
 
-## Index-rute
+### Index-rute
 
 ```python
 @app.route('/')
@@ -942,7 +949,7 @@ HTML får `sections=sections`, så i HTML kan du gjøre:
 
 ---
 
-## Section-rute
+### Section-rute
 
 ```python
 @app.route('/section/<int:section_id>')
@@ -983,7 +990,7 @@ DATABASE gir ID → HTML lager link → URL sender ID → Flask bruker ID → DA
 
 ---
 
-## Topic-rute
+### Topic-rute
 
 ```python
 @app.route('/topic/<int:topic_id>')
@@ -996,7 +1003,7 @@ Denne koden gjør det samme som section-koden. Den får `topic_id` fra noe som `
 
 ---
 
-## Set comprehension – `answered_ids`
+### Set comprehension – `answered_ids`
 
 ```python
 answered_ids = {p.element_id for p in
@@ -1029,7 +1036,7 @@ Resultat: `{5, 6, 9}`
 
 ---
 
-## Dict comprehension – `open_answers`
+### Dict comprehension – `open_answers`
 
 ```python
 open_answers = {a.element_id: a.answer for a in
@@ -1120,7 +1127,7 @@ Og resultatet blir noe som: `✅ Besvart, Ditt svar: Jeg tror svaret er 10`
 
 ---
 
-## `elements_rendered`
+### `elements_rendered`
 
 ```python
 elements_rendered = []
@@ -1139,6 +1146,7 @@ Denne koden gjør læringsinnhold klart til HTML før det sendes til Jinja, og g
 Loopen går gjennom alle læringselementer i topic med `for el in tema.elements:`. Forskjellen mellom denne og den vi hadde tidligere i `answers_id` er at denne ikke bruker set eller dict – den bare er helheten, altså en vanlig loop.
 
 Den går gjennom:
+
 ```
 el1 → tekst
 el2 → markdown
@@ -1159,7 +1167,7 @@ Det er `rendered = md.markdown` som gjør markdown om til HTML, resten er bare u
 
 **`fenced_code`** gjør sånn at man kan skrive kode i blokker:
 
-````python
+````
 ```python
 print("hei")
 ```
@@ -1196,7 +1204,7 @@ Også lagrer vi resultatet med `elements_rendered.append((el, rendered))`. I lis
 
 ---
 
-## Profil-rute
+### Profil-rute
 
 ```python
 @app.route('/profil')
@@ -1221,28 +1229,27 @@ def profile():
         visited=visited, topic_stats=topic_stats)
 ```
 
-Denne flask ruten lager en profileside med statistikk hentet fra databasen.
-Definerer hva som skjer når noen går til ruten med `def profile():`
-også lager den en variabel som har samme verdi som current_user som kommer fra login(user).
-Den henter frem answered, correct, visited via querry gjennom de forskjellige tabellene filltrert ved at user_id i databasen skal matche uid variabelen. Correct teller bare de hvor `correct = True`
-`.count` på slutten betyr at den skal telle radene den klarer å finne frem.
+Denne flask ruten lager en profileside med statistikk hentet fra databasen. Definerer hva som skjer når noen går til ruten med `def profile():`, også lager den en variabel som har samme verdi som current_user som kommer fra login(user). Den henter frem answered, correct, visited via querry gjennom de forskjellige tabellene filltrert ved at user_id i databasen skal matche uid variabelen. Correct teller bare de hvor `correct = True`. `.count` på slutten betyr at den skal telle radene den klarer å finne frem.
 
-`topic_stats` er en tom liste. 
-Så sier den at for hver tema som ligger i topic skal den hente alle tabeller.
-`total = len(tema.elements)` betyr at den skal telle hvor mange lærings elementer hver tema har. For eksempel kan drift ha quiz, åpen spørsmål eller markdown om diverse tema. Selve koden `len()` betyr bare "hvor mange ting er det her".
-Et vanlig eksempel på dette er: 
-```py
+`topic_stats` er en tom liste. Så sier den at for hver tema som ligger i topic skal den hente alle tabeller. `total = len(tema.elements)` betyr at den skal telle hvor mange lærings elementer hver tema har. For eksempel kan drift ha quiz, åpen spørsmål eller markdown om diverse tema. Selve koden `len()` betyr bare "hvor mange ting er det her".
+
+Et vanlig eksempel på dette er:
+
+```python
 frukt = ["eple", "banan", "pære"]
 len(frukt)
 ```
+
 Hvor len da sier at det er 3 items i listen frukt.
 
-Visuelt: 
+Visuelt:
+
 ```
 tema.elements = [oppgave1, oppgave2, oppgave3]
 ```
+
 HUSK at det er section -> topic -> tema -> elements
 
-`if total == 0: continue` Siden total teller så sier denne koden at om total ikke er noe så skal den bare hoppe vidre og ikke gjøre resten av løkken fordi det ikke lenger er viktig. Dette er for å ikke krasje systemet når done/total kommer. Fordi done/0 kan ikke kjøres.
+`if total == 0: continue` – siden total teller så sier denne koden at om total ikke er noe så skal den bare hoppe vidre og ikke gjøre resten av løkken fordi det ikke lenger er viktig. Dette er for å ikke krasje systemet når done/total kommer. Fordi done/0 kan ikke kjøres.
 
-`done = Progress.query.filter_by(user_id=uid).join(LearningElement).filter(LearningElement.topic_id == tema.id).count()` Er det som faktisk ser hva du har gjort ferdig. Den lager en variabel som heter done. Done har samme verdi som alle rader i progress hvor user_id er det samme som uid. `.join` betyr at den skal koble progress tabellen med LearningElement tabellen.
+`done = Progress.query.filter_by(user_id=uid).join(LearningElement).filter(LearningElement.topic_id == tema.id).count()` er det som faktisk ser hva du har gjort ferdig. Den lager en variabel som heter done. Done har samme verdi som alle rader i progress hvor user_id er det samme som uid. `.join` betyr at den skal koble progress tabellen med LearningElement tabellen.

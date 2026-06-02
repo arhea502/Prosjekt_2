@@ -241,6 +241,7 @@ def delete_topic(tid):
     db.session.delete(Topic.query.get_or_404(tid))
     db.session.commit()
     return redirect(url_for('admin_panel'))
+abcdefghijklmnopqrstuvwxyzæøå
 
 @app.route('/admin/element/new', methods=['POST'])
 @admin_required
