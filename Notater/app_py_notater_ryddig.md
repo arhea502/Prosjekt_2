@@ -34,6 +34,12 @@ Dokumentasjon av Flask-appens konfigurasjon, innloggingssystem, databasemodeller
 
 > Setter opp Flask-appen, databasetilkobling og hemmelig nøkkel for session-håndtering.
 
+# Venv.
+
+Venv er et virtuelt miljø i Python som lager en egen isolert “boble” for hvert prosjekt. Dette bidrar til å løse versjonsproblemer fordi pakker installeres inne i miljøet, ikke globalt på PC-en.
+
+For eksempel kan ett prosjekt bruke en eldre versjon av en pakke, mens et annet prosjekt bruker en nyere versjon, uten at de krasjer. Venv sørger for at prosjektene holdes skilt og ikke påvirker hverandre.
+
 ---
 
 ### `Flask(__name__)`
