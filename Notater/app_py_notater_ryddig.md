@@ -109,6 +109,11 @@ Dette kalles en URI (Uniform Resource Identifier) – en standard måte å beskr
 - Databasebasert login
 - All persistent data
 
+
+@login_required → triggerer authentication flow
+flash() → prøver å bruke session gjennom flash.session()
+session → crasher uten secret_key
+ Fiks = set app.secret_key
 ---
 
 ### `SQLAlchemy(app)`
