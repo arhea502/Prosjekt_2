@@ -1,0 +1,156 @@
+{% extends "base.html" %}
+{% block title %}Admin{% endblock %}
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<div class="page-header"><h1>⚙️ Admin-panel</h1></div>
+
+<!-- NY SEKSJON -->
+<div class="admin-card">
+  <h2>+ Ny seksjon</h2>
+  <form method="post" action="/admin/section/new" class="admin-form">
+    <input  name="title"       placeholder="Tittel (påkrevd)" required>
+    <input  name="description" placeholder="Beskrivelse">
+    <input  name="emoji"       placeholder="Emoji 📚">
+    <button type="submit">Opprett seksjon</button>
+  </form>
+</div>
+
+<!-- NYTT TEMA -->
+<div class="admin-card">
+  <h2>+ Nytt tema</h2>
+  <form method="post" action="/admin/topic/new" class="admin-form">
+    <input name="title" placeholder="Temaets tittel" required>
+    <select name="section_id" required>
+      <option value="">Velg seksjon...</option>
+      {% for s in sections %}
+        <option value="{{ s.id }}">{{ s.title }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Opprett tema</button>
+  </form>
+</div>
+
+<!-- NYTT ELEMENT -->
+<div class="admin-card">
+  <h2>+ Nytt læringselement</h2>
+  <form method="post" action="/admin/element/new" class="admin-form">
+    <select name="topic_id" required>
+      <option value="">Velg tema...</option>
+      {% for t in topics %}
+        <option value="{{ t.id }}">{{ t.section.title }} → {{ t.title }}</option>
+      {% endfor %}
+    </select>
+    <select name="type" id="el-type" required>
+      <option value="">Velg type...</option>
+      <option value="markdown">📄 Markdown</option>
+      <option value="quiz">❓ Quiz</option>
+      <option value="open">✏️ Åpent spørsmål</option>
+    </select>
+    <div id="fields-markdown" class="el-fields" style="display:none">
+      <textarea name="content" id="md-input" rows="10"
+                placeholder="# Overskrift\n\nTekst med **bold**..."></textarea>
+      <div id="md-preview" class="md-preview markdown-content"></div>
+    </div>
+    <div id="fields-quiz" class="el-fields" style="display:none">
+      <input  name="question"       placeholder="Spørsmålet">
+      <input  name="option_a"       placeholder="Alternativ A">
+      <input  name="option_b"       placeholder="Alternativ B">
+      <input  name="option_c"       placeholder="Alternativ C">
+      <input  name="option_d"       placeholder="Alternativ D">
+      <select name="correct_answer">
+        <option value="">Riktig svar...</option>
+        <option value="A">A</option>
+        <option value="B">B</option>
+        <option value="C">C</option>
+        <option value="D">D</option>
+      </select>
+    </div>
+    <div id="fields-open" class="el-fields" style="display:none">
+      <input    name="question"   placeholder="Spørsmålet">
+      <textarea name="answer_key" rows="3"
+                placeholder="Fasit (vises etter innlevering)"></textarea>
+    </div>
+    <button type="submit">Opprett element</button>
+  </form>
+</div>
+
+<!-- INNHOLDSTRE -->
+<div class="admin-card">
+  <h2>Innholdstre</h2>
+  {% for section in sections %}
+  <div class="tree-section">
+    <div class="tree-header collapsible" data-key="sec-{{ section.id }}">
+      <span class="arrow">▼</span>
+      <strong>{{ section.emoji }} {{ section.title }}</strong>
+      <form method="post" action="/admin/section/{{ section.id }}/delete"
+            style="display:inline;margin-left:auto">
+        <button class="del-btn"
+                onclick="return confirm('Slette seksjonen og ALT innhold?')">🗑</button>
+      </form>
+    </div>
+    <div class="tree-body" id="sec-{{ section.id }}">
+      {% for topic in section.topics %}
+      <div class="tree-topic">
+        <div class="tree-topic-header">
+          <span>📌 {{ topic.title }}</span>
+          <form method="post" action="/admin/topic/{{ topic.id }}/delete"
+                style="display:inline">
+            <button class="del-btn">🗑</button>
+          </form>
+        </div>
+        {% for el in topic.elements %}
+        <div class="tree-el">
+          <span class="el-type-badge {{ el.type }}">{{ el.type }}</span>
+          <span class="el-preview">{{ (el.question or el.content or '')[:60] }}</span>
+          <a href="/admin/element/{{ el.id }}/answers" class="el-link">👥</a>
+          <form method="post" action="/admin/element/{{ el.id }}/delete"
+                style="display:inline">
+            <button class="del-btn">🗑</button>
+          </form>
+        </div>
+        {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+// Vis riktige felter basert på valgt type
+document.getElementById('el-type').addEventListener('change', function() {
+  document.querySelectorAll('.el-fields').forEach(f => f.style.display = 'none')
+  if (this.value) {
+    const f = document.getElementById('fields-' + this.value)
+    if (f) f.style.display = 'block'
+  }
+})
+
+// Markdown live-forhåndsvisning
+const mdInput   = document.getElementById('md-input')
+const mdPreview = document.getElementById('md-preview')
+if (mdInput) {
+  mdInput.addEventListener('input', () => {
+    mdPreview.innerHTML = marked.parse(mdInput.value)
+  })
+}
+
+// Kollapsible seksjoner med localStorage
+document.querySelectorAll('.collapsible').forEach(h => {
+  const key   = h.dataset.key
+  const body  = document.getElementById(key)
+  const arrow = h.querySelector('.arrow')
+  if (localStorage.getItem(key) === 'collapsed') {
+    body.style.display = 'none'; arrow.textContent = '▶'
+  }
+  h.addEventListener('click', e => {
+    if (e.target.closest('form')) return // ikke kollaps ved slett-klikk
+    const hidden = body.style.display === 'none'
+    body.style.display = hidden ? '' : 'none'
+    arrow.textContent  = hidden ? '▼' : '▶'
+    localStorage.setItem(key, hidden ? 'open' : 'collapsed')
+  })
+})
+</script>
+{% endblock %}

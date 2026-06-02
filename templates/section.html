@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{{ section.title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div class="breadcrumb"><a href="/">Hjem</a> → {{ section.title }}</div>
+  <h1>{{ section.emoji }} {{ section.title }}</h1>
+  <p>{{ section.description }}</p>
+</div>
+<div class="topics-list">
+  {% for topic in section.topics %}
+    <a href="/topic/{{ topic.id }}" class="topic-row">
+      <span class="topic-title">{{ topic.title }}</span>
+      <span class="topic-count">{{ topic.elements|length }} oppgaver</span>
+      <span class="topic-arrow">→</span>
+    </a>
+  {% else %}
+    <p>Ingen temaer ennå.</p>
+  {% endfor %}
+</div>
+{% endblock %}

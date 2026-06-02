@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}{{ topic.title }}{% endblock %}
+{% block content %}
+
+<div class="page-header">
+  <div class="breadcrumb">
+    <a href="/">Hjem</a> →
+    <a href="/section/{{ topic.section_id }}">{{ topic.section.title }}</a> →
+    {{ topic.title }}
+  </div>
+  <h1>{{ topic.title }}</h1>
+</div>
+
+{% for element, rendered in elements_rendered %}
+
+  {# ── MARKDOWN ── #}
+  {% if element.type == 'markdown' %}
+    <div class="markdown-content">{{ rendered | safe }}</div>
+
+  {# ── QUIZ ── #}
+  {% elif element.type == 'quiz' %}
+    <div class="quiz-block" data-element-id="{{ element.id }}">
+      <p class="quiz-q">❓ {{ element.question }}</p>
+      {% for letter, text in [('A', element.option_a), ('B', element.option_b),
+                              ('C', element.option_c), ('D', element.option_d)] %}
+        {% if text %}
+          <button class="quiz-btn"
+                  data-answer="{{ letter }}"
+                  {% if element.id in answered_ids %}disabled{% endif %}>
+            <strong>{{ letter }}.</strong> {{ text }}
+          </button>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+  {# ── ÅPENT SPØRSMÅL ── #}
+  {% elif element.type == 'open' %}
+    <div class="open-block">
+      <p class="open-q">✏️ {{ element.question }}</p>
+      {% if element.id in open_answers %}
+        <div class="answer-given">
+          <p><strong>Ditt svar:</strong> {{ open_answers[element.id] }}</p>
+          {% if element.answer_key %}
+            <p class="answer-key"><strong>Fasit:</strong> {{ element.answer_key }}</p>
+          {% endif %}
+        </div>
+      {% else %}
+        <form method="post" action="/answer/open/{{ element.id }}">
+          <textarea name="answer" rows="4" required></textarea>
+          <button type="submit">Lever svar</button>
+        </form>
+      {% endif %}
+    </div>
+  {% endif %}
+
+{% endfor %}
+
+<script>
+document.querySelectorAll('.quiz-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const block     = btn.closest('.quiz-block')
+    const elementId = parseInt(block.dataset.elementId)
+    const answer    = btn.dataset.answer
+
+    const res = await fetch('/answer/quiz', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ element_id: elementId, answer })
+    })
+    if (!res.ok) return
+
+    const data = await res.json()
+    block.querySelectorAll('.quiz-btn').forEach(b => {
+      b.disabled = true
+      if (b.dataset.answer === data.right_answer) b.classList.add('correct')
+      else if (b === btn && !data.correct)      b.classList.add('wrong')
+    })
+  })
+})
+</script>
+
+{% endblock %}

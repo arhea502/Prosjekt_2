@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Forsiden{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>Hei, {{ current_user.username }}! 👋</h1>
+  <p>Velg en seksjon og begynn å lære.</p>
+</div>
+<div class="sections-grid">
+  {% for section in sections %}
+    <a href="/section/{{ section.id }}" class="section-card">
+      <div class="section-emoji">{{ section.emoji or '📚' }}</div>
+      <h2>{{ section.title }}</h2>
+      <p>{{ section.description }}</p>
+      <div class="section-count">{{ section.topics|length }} temaer</div>
+    </a>
+  {% else %}
+    <p>Ingen seksjoner ennå.</p>
+  {% endfor %}
+</div>
+{% endblock %}

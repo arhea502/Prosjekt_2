@@ -56,12 +56,36 @@ Brukes til å signere session cookies. Innlogging fungerer ikke uten denne nøkk
 
 > **Session cookies** er midlertidig data som brukes av nettsider for å huske informasjon om deg mens du navigerer fra side til side i løpet av ett enkelt besøk. De lagrer informasjon om brukeren (for eksempel innloggingsstatus) mellom forespørsler til serveren.
 
+ **Cookies** (informasjonskapsler): Lagres lokalt i nettleseren på din egen PC eller mobil.
+ **Sessions** (sesjoner): Lagres på serveren til nettstedet du besøker.
+
+| Egenskap | Cookies | Sessions |
+|---|---|---|
+| Lagringssted | Klienten (din nettleser) | Serveren (nettstedets datamaskin) |
+| Sikkerhet | Mindre sikker (data kan leses/endres av brukeren) | Mer sikker (data er utilgjengelig for brukeren) |
+| Kapasitet | Veldig liten (maks 4 KB) | Stor (avhenger av serverens minne) |
+| Varighet | Kan vare i dager, uker eller år (til den utløper eller slettes) | Slettes vanligvis når du lukker nettleseren eller logger ut |
+| Bruk | Huske brukernavn, språkvalg, annonsesporing | Handlekurv, innloggingsstatus, sensitiv informasjon |
+
+
 **Når du går til en ny side:**
 1. Du klikker en link
 2. Nettleseren sender cookie med request
 3. Flask leser cookie
 4. Flask sier: "aha, dette er user 1"
 5. `current_user` blir satt automatisk
+
+Uten denne hadde du mistet `login_user()`-kommandoen.
+
+**⚠️ Hva kan gå galt uten:**
+- Sessions kan forfalskes
+- Flask kan nekte å bruke sessions
+- Brukere kan utgi seg for andre
+
+**🧩 Funksjoner du mister:**
+- `session`
+- `login_user()`
+- Huske innlogget bruker mellom requests
 
 ---
 
@@ -74,6 +98,16 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///database.db'
 Forteller hvilken database Flask bruker. Her brukes SQLite, og databasen lagres i filen `database.db`. De tre skråstrekene `///` betyr at stien er relativ til prosjektmappen.
 
 Dette kalles en URI (Uniform Resource Identifier) – en standard måte å beskrive hvor en ressurs (her: database) befinner seg og hvordan man kobler til den.
+
+**⚠️ Hva kan gå galt uten:**
+- Appen krasjer ved oppstart
+- Ingen data blir lagret
+- Login-system fungerer ikke
+
+**🧩 Funksjoner du mister:**
+- Lagring av brukere
+- Databasebasert login
+- All persistent data
 
 ---
 
@@ -91,6 +125,16 @@ SQLAlchemy er en **ORM (Object Relational Mapper)**, som betyr at du kan jobbe m
 User.query.all()    # ORM
 SELECT * FROM user; # Rå SQL
 ```
+
+**⚠️ Hva kan gå galt uten:**
+- Ingen database-tilgang
+- Queries krasjer
+
+**🧩 Funksjoner du mister:**
+- `db.Model`
+- `db.session.add()`
+- `db.session.commit()`
+- `User.query.get()`
 
 ---
 ---
@@ -110,6 +154,16 @@ login_manager = LoginManager(app)
 
 Kobler Flask til login-systemet. Dette gjør at `current_user` blir tilgjengelig i alle ruter, og hjelper med å håndtere session cookies og vite hvem som er logget inn.
 
+**⚠️ Hva kan gå galt uten:**
+- Login-system fungerer ikke
+- Appen vet ikke hvem som er logget inn
+
+**🧩 Funksjoner du mister:**
+- `current_user`
+- `login_user()`
+- `logout_user()`
+- `@login_required`
+
 ---
 
 ### `login_view`
@@ -119,6 +173,14 @@ login_manager.login_view = 'login'
 ```
 
 Hvis noen prøver å gå til en beskyttet side uten å være logget inn, vil de automatisk bli sendt til ruten `login`.
+
+**⚠️ Hva kan gå galt uten:**
+- Bruker får bare 401/403 error
+- Ingen redirect til login-side
+
+**🧩 Funksjoner du mister:**
+- Automatisk redirect ved `@login_required`
+- Bedre brukeropplevelse
 
 ---
 
@@ -139,6 +201,15 @@ Funksjonen lar `flask_login` hente brukere fra databasen. Den kalles automatisk 
 2. Flask-Login leser cookie
 3. Den ser: "aha, user_id = 1"
 4. Da kaller den user_loader-funksjonen
+
+**⚠️ Hva kan gå galt uten:**
+- Flask-Login finner ikke brukeren
+- Bruker virker ikke innlogget
+
+**🧩 Funksjoner du mister:**
+- `current_user`
+- Persistente sessions
+- Automatisk gjenkjenning av bruker
 
 ---
 
@@ -162,6 +233,19 @@ flowchart TD
     K["return render_template(...)"]
     L["redirect til /login"]
 ```
+
+---
+
+### 💡 Oppsummert – hva skjer uten hva
+
+| Linje | Hva du mister |
+|---|---|
+| `SECRET_KEY` | `session`, `login_user` |
+| `DATABASE_URI` | database |
+| `SQLAlchemy` | db-funksjoner |
+| `LoginManager` | hele login-systemet |
+| `login_view` | redirect |
+| `user_loader` | `current_user` |
 
 ---
 ---
@@ -526,7 +610,7 @@ with app.app_context():
         db.session.commit()
 ```
 
-`with app.app_context():` handler om at Flask trenger en "applikasjonskontekst" for å vite hvilken app som brukes når du jobber med databasen. Dette gjør sånn at databasen kan brukes uten en HTTP-forespørsel. Uten denne vil for eksempel `db.create_all()` ikke vite hvor databasen er. Senere i koden når jeg drev med å legge ting i databasen lærte jeg at `app.appcpntext()` betyr bare "skru på appen midlertidig" så vi kan bruke databasen og config uten at en web-request kjører. Alle ruter har automatisk en appcontext defor krasjet det ikke tidligere, men når jeg prøvde å kjøre databasen på egenhånd krasjet det. 
+`with app.app_context():` handler om at Flask trenger en "applikasjonskontekst" for å vite hvilken app som brukes når du jobber med databasen. Dette gjør sånn at databasen kan brukes uten en HTTP-forespørsel. Uten denne vil for eksempel `db.create_all()` ikke vite hvor databasen er. Senere i koden når jeg drev med å legge ting i databasen lærte jeg at `app.app_context()` betyr bare "skru på appen midlertidig" så vi kan bruke databasen og config uten at en web-request kjører. Alle ruter har automatisk en appcontext defor krasjet det ikke tidligere, men når jeg prøvde å kjøre databasen på egenhånd krasjet det. 
 
 `db.create_all()` lager alle tabellene som er definert med `db.Model` fra tidligere. Nå er tabellene `User`, `Topic`, `Section` osv faktisk opprettet.
 
@@ -1092,11 +1176,14 @@ Et vanlig eksempel på dette er:
 frukt = ["eple", "banan", "pære"]
 len(frukt)
 ```
-Hvor len da sier at det er 3 items i listen frukt
-visuelt: 
+Hvor len da sier at det er 3 items i listen frukt.
+
+Visuelt: 
+```
 tema.elements = [oppgave1, oppgave2, oppgave3]
+```
 HUSK at det er section -> topic -> tema -> elements
 
 `if total == 0: continue` Siden total teller så sier denne koden at om total ikke er noe så skal den bare hoppe vidre og ikke gjøre resten av løkken fordi det ikke lenger er viktig. Dette er for å ikke krasje systemet når done/total kommer. Fordi done/0 kan ikke kjøres.
 
-`done = Progress.query.filter_by(user_id=uid).join(LearningElement).filter(LearningElement.topic_id == tema.id).count()` Er det som faktisk ser hva du har gjort ferdig. Den lager en variabel som heter done. Done har samme verdi som alle rader i progress hvor user_id er det samme som uid. `.join` betyr at den skal koble progress tabellen med LearningElement tabellen
+`done = Progress.query.filter_by(user_id=uid).join(LearningElement).filter(LearningElement.topic_id == tema.id).count()` Er det som faktisk ser hva du har gjort ferdig. Den lager en variabel som heter done. Done har samme verdi som alle rader i progress hvor user_id er det samme som uid. `.join` betyr at den skal koble progress tabellen med LearningElement tabellen.

@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Profil{% endblock %}
+{% block content %}
+<div class="page-header">
+  <h1>🎓 {{ current_user.username }}</h1>
+</div>
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-num">{{ answered }}</div>
+    <div class="stat-label">Oppgaver besvart</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num">{{ correct }}</div>
+    <div class="stat-label">Riktige quiz-svar</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num">{{ visited }}</div>
+    <div class="stat-label">Temaer besøkt</div>
+  </div>
+</div>
+{% if topic_stats %}
+<h2 style="margin: 28px 0 14px">Fremgang per tema</h2>
+<div class="topic-stats">
+  {% for stat in topic_stats %}
+    <div class="topic-stat-row">
+      <div class="topic-stat-top">
+        <span>{{ stat.topic.title }}</span>
+        <span>{{ stat.done }}/{{ stat.total }} ({{ stat.percent }}%)</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" style="width: {{ stat.percent }}%"></div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

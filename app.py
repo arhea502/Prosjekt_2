@@ -204,6 +204,95 @@ def profile():
         answered=answered, correct=correct,
         visited=visited, topic_stats=topic_stats)
 
+@app.route('/admin')
+@admin_required
+def admin_panel():
+    sections = Section.query.all()
+    topics   = Topic.query.all()
+    return render_template('admin/panel.html', sections=sections, topics=topics)
+
+@app.route('/admin/section/new', methods=['POST'])
+@admin_required
+def new_section():
+    db.session.add(Section(title=request.form['title'],
+                            description=request.form.get('description', ''),
+                            emoji=request.form.get('emoji', '📚')))
+    db.session.commit()
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/section/<int:sid>/delete', methods=['POST'])
+@admin_required
+def delete_section(sid):
+    db.session.delete(Section.query.get_or_404(sid))
+    db.session.commit()
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/topic/new', methods=['POST'])
+@admin_required
+def new_topic():
+    db.session.add(Topic(title=request.form['title'],
+                          section_id=request.form['section_id']))
+    db.session.commit()
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/topic/<int:tid>/delete', methods=['POST'])
+@admin_required
+def delete_topic(tid):
+    db.session.delete(Topic.query.get_or_404(tid))
+    db.session.commit()
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/element/new', methods=['POST'])
+@admin_required
+def new_element():
+    db.session.add(LearningElement(
+        topic_id=request.form['topic_id'],
+        type=request.form['type'],
+        content=request.form.get('content', ''),
+        question=request.form.get('question', ''),
+        option_a=request.form.get('option_a', ''),
+        option_b=request.form.get('option_b', ''),
+        option_c=request.form.get('option_c', ''),
+        option_d=request.form.get('option_d', ''),
+        correct_answer=request.form.get('correct_answer', ''),
+        answer_key=request.form.get('answer_key', '')
+    ))
+    db.session.commit()
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/element/<int:eid>/delete', methods=['POST'])
+@admin_required
+def delete_element(eid):
+    db.session.delete(LearningElement.query.get_or_404(eid))
+    db.session.commit()
+    return redirect(url_for('admin_panel'))
+
+@app.route('/admin/element/<int:eid>/answers')
+@admin_required
+def view_answers(eid):
+    element = LearningElement.query.get_or_404(eid)
+    if element.type == 'quiz':
+        rows = [(User.query.get(p.user_id), p.correct)
+                for p in Progress.query.filter_by(element_id=eid).all()]
+    else:
+        rows = [(User.query.get(a.user_id), a.answer)
+                for a in OpenAnswer.query.filter_by(element_id=eid).all()]
+    return render_template('admin/answers.html', element=element, rows=rows)
+
+@app.route('/admin/setup', methods=['GET', 'POST'])
+def admin_setup():
+    if request.method == 'POST':
+        admin = User.query.filter_by(is_admin=True).first()
+        if admin:
+            admin.username      = request.form['username']
+            admin.password_hash = generate_password_hash(request.form['password'])
+            db.session.commit()
+            flash('Admin oppdatert!', 'success')
+        return redirect(url_for('login'))
+    return render_template('admin/setup.html')
+
+if __name__ == '__main__':
+    app.run(debug=True)
 
 
 

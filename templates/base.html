@@ -8,15 +8,15 @@
 </head>
 <body>
 <nav>
-  <a href="/" class="nav-logo">Læringsplattform</a>
+  <a href="/" class="nav-logo">🎓 Læringsplattform</a>
   <div class="nav-links">
     {% if current_user.is_authenticated %}
       <a href="/">Hjem</a>
       <a href="/profil">Profil</a>
       {% if current_user.is_admin %}
-        <a href="/admin" class="nav-admin"> Admin</a>
+        <a href="/admin" class="nav-admin">⚙️ Admin</a>
       {% endif %}
-      <span class="nav-user"> {{ current_user.username }}</span>
+      <span class="nav-user">👤 {{ current_user.username }}</span>
       <a href="/logg-ut" class="nav-logout">Logg ut</a>
     {% else %}
       <a href="/login">Logg inn</a>
