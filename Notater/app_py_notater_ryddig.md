@@ -41,9 +41,9 @@ Dokumentasjon av Flask-appens konfigurasjon, innloggingssystem, databasemodeller
 
 Slik fungerer den Portvakt: All data går gjennom porter. Brannmuren bestemmer hvilke data som slipper inn og ut basert på strenge sikkerhetsregler. Blokkering: Hvis ukjent eller mistenkelig trafikk prøver å koble seg til enheten din, blir den stoppet i døren. Skille mellom nettverk: Den fungerer som en barriere mellom ditt private, trygge nettverk og det åpne, usikre internett.
 
-Programvare: En egen applikasjon eller innebygd funksjon (som Windows Defender Brannmur) installert direkte på PC-en din.
+**Programvare:** En egen applikasjon eller innebygd funksjon (som Windows Defender Brannmur) installert direkte på PC-en din.
 
-Maskinvare: En fysisk boks som er koblet mellom internett og ruteren din, som beskytter hele hjemme- eller bedriftsnettverket.
+**Maskinvare:** En fysisk boks som er koblet mellom internett og ruteren din, som beskytter hele hjemme- eller bedriftsnettverket.
 
 ### Port
 
